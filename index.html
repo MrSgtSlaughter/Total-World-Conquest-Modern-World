@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚔️ Total World Conquest: Modern Era</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<style>
+:root {
+  --bg:      #0a0e27;
+  --bg2:     #1a1a2e;
+  --green:   #00ff00;
+  --yellow:  #ffff00;
+  --red:     #ff0000;
+  --border:  #00ff00;
+  --shadow:  rgba(0,255,0,0.3);
+  --font:    'Courier New', monospace;
+  --bsz:     3px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--green);font-family:var(--font);overflow:hidden;height:100vh}
+.screen{width:100vw;height:100vh;overflow:auto;display:none}
+.screen.active{display:block}
+
+/* ── RETRO BASE ── */
+.retro-header{background:var(--yellow);color:var(--bg);padding:14px 20px;border:var(--bsz) solid var(--green);text-align:center;box-shadow:8px 8px 0 rgba(0,0,0,.5);margin:8px}
+.retro-header h1{font-size:2em;text-shadow:2px 2px 0 var(--bg);letter-spacing:2px}
+.retro-header p{font-size:1em;font-weight:700;margin-top:4px}
+.retro-panel{background:var(--bg2);border:var(--bsz) solid var(--border);padding:14px;margin:8px;box-shadow:inset 0 0 10px var(--shadow),5px 5px 0 rgba(0,0,0,.5)}
+.retro-panel h2{color:var(--yellow);font-size:1.2em;border-bottom:2px dashed var(--border);padding-bottom:8px;margin-bottom:10px}
+.retro-btn{background:var(--yellow);color:var(--bg);border:var(--bsz) solid var(--green);padding:8px 18px;font-family:var(--font);font-size:.9em;font-weight:700;cursor:pointer;box-shadow:4px 4px 0 rgba(0,0,0,.5);transition:all .1s;margin:4px}
+.retro-btn:hover:not(:disabled){transform:translate(-2px,-2px);box-shadow:6px 6px 0 rgba(0,0,0,.5)}
+.retro-btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:2px 2px 0 rgba(0,0,0,.5)}
+.retro-btn:disabled{opacity:.45;cursor:not-allowed}
+.retro-btn.secondary{background:var(--bg);color:var(--green);border-color:var(--green)}
+.retro-btn.danger{background:#ff3333;color:#fff;border-color:#fff}
+.retro-btn.sm{padding:4px 10px;font-size:.78em;margin:2px}
+
+/* ── LOGIN ── */
+#login-screen{background:linear-gradient(45deg,#0a0e27 25%,transparent 25%,transparent 75%,#0a0e27 75%,#0a0e27),linear-gradient(45deg,#0a0e27 25%,transparent 25%,transparent 75%,#0a0e27 75%,#0a0e27);background-size:60px 60px;background-position:0 0,30px 30px;background-color:var(--bg)}
+.login-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.period-btn{background:var(--bg);border:2px solid var(--green);color:var(--green);padding:18px;font-family:var(--font);font-size:1.1em;font-weight:700;cursor:pointer;transition:all .2s}
+.period-btn:hover{background:var(--yellow);color:var(--bg);border-color:var(--yellow);box-shadow:0 0 15px rgba(255,255,0,.5)}
+.period-btn span{display:block;font-size:.8em;margin-top:4px}
+.how-to{text-align:left;font-size:.88em;line-height:1.7}
+
+/* ── STUDENT DASHBOARD ── */
+#student-screen .s-layout{display:grid;grid-template-columns:1fr 1fr;gap:0;height:calc(100vh - 100px);overflow:hidden}
+#student-screen .s-layout .retro-panel{overflow-y:auto;max-height:calc(100vh - 120px);margin:6px}
+.stat-line{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--border);font-size:1em}
+.stat-line:last-child{border-bottom:none}
+.stat-val{color:var(--yellow);font-weight:700;font-size:1.2em}
+.inv-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:8px 0}
+.inv-item{background:var(--bg);border:2px solid var(--border);padding:10px;text-align:center}
+.inv-item .iname{font-weight:700;font-size:.8em;color:var(--yellow)}
+.inv-item .iqty{font-size:1.6em;color:var(--green);margin-top:4px}
+.lb-table{width:100%;border-collapse:collapse;margin:8px 0;font-size:.9em}
+.lb-table th{background:var(--yellow);color:var(--bg);padding:6px 10px;text-align:left;border:1px solid var(--bg)}
+.lb-table td{padding:6px 10px;border:1px dashed var(--border)}
+.lb-table tr:hover td{background:rgba(0,255,0,.08)}
+.rank-1{color:var(--yellow);font-weight:700}
+.skip-badge{background:#ff3333;color:#fff;padding:2px 6px;font-size:.7em;border-radius:3px;margin-left:6px}
+.govt-badge{background:var(--bg);border:1px solid var(--border);color:var(--green);padding:2px 8px;font-size:.7em;border-radius:3px;margin:2px;display:inline-block}
+
+/* ── TEACHER MAP LAYOUT ── */
+#teacher-screen{display:none!important}
+#teacher-screen.active{display:flex!important;flex-direction:column}
+#teacher-screen .t-header{background:var(--yellow);color:var(--bg);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--green);flex-shrink:0}
+#teacher-screen .t-header h1{font-size:1.2em;font-weight:700;letter-spacing:2px}
+#teacher-screen .t-body{display:flex;flex:1;overflow:hidden}
+#map-wrap{flex:1;position:relative;background:#000d1a}
+#map-svg{width:100%;height:100%}
+#t-sidebar{width:290px;background:var(--bg2);border-left:2px solid var(--green);overflow-y:auto;flex-shrink:0}
+#t-sidebar .retro-panel{margin:6px;padding:10px}
+#t-sidebar .retro-panel h2{font-size:.85em;padding-bottom:6px;margin-bottom:8px}
+
+/* MAP COUNTRIES */
+.country{stroke:#0d1224;stroke-width:.5;cursor:pointer;transition:filter .15s}
+.country:hover{filter:brightness(1.4) saturate(1.3);stroke:#ffff00;stroke-width:1.5}
+.country-unclaimed{fill:#b8c9c9;stroke:#6a8a8a;stroke-width:0.6}
+.country-1st{fill:#d94141}
+.country-2nd{fill:#2ea44f}
+.country-5th{fill:#f2c94c}
+.country-6th{fill:#2f6fed}
+.country-skipped{stroke:#ff3300!important;stroke-width:2!important;stroke-dasharray:5,3}
+
+/* TOOLTIP */
+#tt{position:fixed;background:var(--bg2);border:2px solid var(--yellow);color:var(--green);padding:8px 12px;font-size:.76em;pointer-events:none;z-index:500;display:none;font-family:var(--font);box-shadow:3px 3px 0 rgba(0,0,0,.5)}
+
+/* LEADERBOARD SIDEBAR */
+.lb-row{display:flex;align-items:center;gap:6px;padding:6px 4px;border-bottom:1px dashed var(--border);font-size:.82em}
+.lb-row:last-child{border-bottom:none}
+.lb-dot{width:12px;height:12px;border:1px solid #fff;flex-shrink:0}
+.lb-pts{color:var(--yellow);font-weight:700;margin-left:auto}
+
+/* TEACHER CONTROLS */
+.ctrl-row{display:flex;gap:4px;align-items:center;margin:4px 0;flex-wrap:wrap}
+.ctrl-select{background:var(--bg);border:1px solid var(--border);color:var(--green);padding:4px 6px;font-family:var(--font);font-size:.76em}
+.ctrl-input{background:var(--bg);border:1px solid var(--border);color:var(--yellow);padding:4px 6px;font-family:var(--font);font-size:.76em;width:90px}
+.ctrl-input::placeholder{color:#444}
+.ctrl-label{font-size:.74em;color:#888;display:block;margin-bottom:2px}
+
+/* GOLD ROW */
+.gold-row{display:flex;align-items:center;gap:4px;margin:3px 0;font-size:.78em}
+.gold-amt{background:var(--bg);border:1px solid #ffd700;color:#ffd700;padding:2px 8px;min-width:70px;text-align:center;font-weight:700}
+
+/* SPECIAL WEAPONS */
+.weapon-card{background:var(--bg);border:2px solid #333;padding:8px;margin:4px 0;border-radius:2px}
+.weapon-card.active{border-color:var(--yellow);box-shadow:0 0 8px rgba(255,255,0,.3)}
+.weapon-name{font-size:.82em;font-weight:700;color:var(--yellow)}
+.weapon-effect{font-size:.7em;color:#aaa;margin:2px 0}
+.weapon-cost{font-size:.75em;color:#ffd700}
+
+/* MODAL */
+.modal-bg{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--yellow);color:var(--bg);border:4px solid var(--green);padding:24px;max-width:500px;width:92%;box-shadow:10px 10px 0 rgba(0,0,0,.7);max-height:90vh;overflow-y:auto}
+.modal h2{color:var(--bg);border-bottom:3px solid var(--bg);margin-bottom:16px;font-size:1.2em}
+.modal-close{float:right;background:none;border:none;color:var(--bg);font-size:1.5em;cursor:pointer;margin-top:-4px}
+.pin-input{background:#fff;border:3px solid var(--bg);color:var(--bg);padding:8px 16px;font-size:1.3em;text-align:center;width:150px;letter-spacing:5px;font-family:var(--font)}
+.pin-err{color:#cc0000;font-size:.8em;min-height:18px;margin-top:4px;text-align:center}
+
+/* CUTSCENE OVERLAY */
+#cutscene{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:3000;display:none;align-items:center;justify-content:center;flex-direction:column}
+#cutscene.open{display:flex}
+#cutscene video{max-width:90%;max-height:80vh;border:4px solid var(--yellow)}
+#cutscene .cs-skip{margin-top:16px;color:var(--yellow);font-size:.9em;cursor:pointer;border:1px dashed var(--yellow);padding:6px 16px;font-family:var(--font)}
+#cutscene .cs-label{color:var(--yellow);font-size:1.3em;font-weight:700;letter-spacing:2px;margin-bottom:12px}
+
+/* CIVIL UNREST */
+#unrest-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,0,0,.15);z-index:500;pointer-events:none;display:none;animation:unrestFlash 0.5s ease-in-out 3}
+@keyframes unrestFlash{0%,100%{opacity:0}50%{opacity:1}}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:var(--bg);border:1px solid var(--border)}
+::-webkit-scrollbar-thumb{background:var(--yellow);border:1px solid var(--border)}
+@media(max-width:900px){
+  #student-screen .s-layout{grid-template-columns:1fr}
+  #t-sidebar{width:240px}
+}
+
+/* BATTLE RESULT DISPLAY */
+.battle-result-box{background:var(--bg);border:3px solid var(--yellow);padding:14px;margin:8px 0;text-align:center}
+.battle-result-box.win{border-color:#00ff00;color:#00ff00}
+.battle-result-box.lose{border-color:#ff3333;color:#ff3333}
+.battle-result-box h3{font-size:1.1em;margin-bottom:6px}
+
+/* ── BACKGROUND VIDEO ── */
+#map-wrap { 
+  position: relative; 
+  overflow: hidden;
+  background: #000;
+  animation: oceanShift 8s ease-in-out infinite alternate;
+}
+@keyframes oceanShift {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+#map-bg-video {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  opacity: 0.55;
+}
+#map-svg {
+  position: relative;
+  z-index: 1;
+}
+.country{fill-opacity:1.0}
+.country-unclaimed{fill:#b8c9c9;stroke:#6a8a8a;stroke-width:0.6}
+#map-country-info { z-index: 10; }
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ LOGIN ══════════════════ -->
+<div id="login-screen" class="screen active">
+  <div style="max-width:620px;margin:0 auto;padding:10px">
+    <div class="retro-header">
+      <h1>⚔️ TOTAL WORLD CONQUEST ⚔️</h1>
+      <p>Modern Era · 7th Grade Social Studies</p>
+    </div>
+    <div class="retro-panel">
+      <h2>👨‍🎓 STUDENT — SELECT YOUR PERIOD</h2>
+      <div class="login-grid">
+        <button class="period-btn" onclick="goStudent(1)">Period 1 <span>🔴 RED EMPIRE</span></button>
+        <button class="period-btn" onclick="goStudent(2)">Period 2 <span>🟢 GREEN EMPIRE</span></button>
+        <button class="period-btn" onclick="goStudent(5)">Period 5 <span>🟡 YELLOW EMPIRE</span></button>
+        <button class="period-btn" onclick="goStudent(6)">Period 6 <span>🔵 BLUE EMPIRE</span></button>
+      </div>
+    </div>
+    <div class="retro-panel">
+      <h2>👨‍🏫 TEACHER</h2>
+      <button class="retro-btn" style="width:100%;padding:14px;font-size:1.1em" onclick="openPinModal()">🔐 CONTROL PANEL</button>
+    </div>
+    <div class="retro-panel">
+      <h2>📖 HOW TO PLAY</h2>
+      <div class="how-to">
+        🌍 <strong>Claim territories</strong> each day to expand your empire<br/>
+        💰 <strong>Earn gold</strong> from participation stamps awarded by your teacher<br/>
+        ⚔️ <strong>Roll d20</strong> to attack neighboring class territories<br/>
+        🏛️ <strong>Choose a government</strong> to unlock special bonuses<br/>
+        ☢️ <strong>Deploy weapons</strong> — ICBM, Nukes, Bombers, Civil Unrest<br/>
+        🏆 <strong>Win</strong> by controlling the most territory points
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ STUDENT ══════════════════ -->
+<div id="student-screen" class="screen">
+  <div class="retro-header" id="s-header">
+    <h1>⚔️ TOTAL WORLD CONQUEST ⚔️</h1>
+    <p id="s-subhead">Period X · COLOR EMPIRE</p>
+  </div>
+  <div class="s-layout">
+    <!-- LEFT: Stats + Inventory -->
+    <div class="retro-panel">
+      <h2>📊 EMPIRE STATUS</h2>
+      <div id="s-stats"></div>
+      <h2 style="margin-top:14px">🎖️ CLASS INVENTORY</h2>
+      <div id="s-inventory" class="inv-grid"></div>
+      <h2 style="margin-top:14px">🏛️ GOVERNMENT</h2>
+      <div id="s-govt" style="font-size:.9em;padding:6px 0"></div>
+    </div>
+    <!-- RIGHT: Leaderboard + News -->
+    <div class="retro-panel">
+      <h2>🏆 LEADERBOARD</h2>
+      <table class="lb-table" id="s-leaderboard"></table>
+      <h2 style="margin-top:14px">📋 BATTLE LOG</h2>
+      <div id="s-log" style="font-size:.78em;max-height:200px;overflow-y:auto;background:var(--bg);padding:8px;border:1px dashed var(--border)"></div>
+      <button class="retro-btn secondary" style="margin-top:10px;width:100%" onclick="goLogin()">← BACK</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ TEACHER ══════════════════ -->
+<div id="teacher-screen" class="screen">
+  <div class="t-header">
+    <h1>⚔️ TWC: MODERN ERA — TEACHER PANEL</h1>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span id="t-date" style="font-size:.75em"></span>
+      <button class="retro-btn sm" onclick="goLogin()">EXIT</button>
+    </div>
+  </div>
+  <div class="t-body">
+    <!-- MAP -->
+    <div id="map-wrap">
+      <img id="map-bg-video" src="water.gif" alt="">
+    <svg id="map-svg"></svg>
+      <!-- Country info tooltip overlay -->
+      <div id="map-country-info" style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:var(--bg2);border:2px solid var(--yellow);padding:10px 20px;font-family:var(--font);color:var(--green);font-size:.82em;display:none;min-width:280px;text-align:center;box-shadow:4px 4px 0 rgba(0,0,0,.5)"></div>
+    </div>
+    <!-- SIDEBAR -->
+    <div id="t-sidebar">
+
+      <!-- LEADERBOARD -->
+      <div class="retro-panel">
+        <h2>🏆 LEADERBOARD</h2>
+        <div id="t-lb"></div>
+      </div>
+
+      <!-- TERRITORY CONTROL -->
+      <div class="retro-panel">
+        <h2>🗺️ TERRITORY</h2>
+        <label class="ctrl-label">Country ISO Code</label>
+        <div class="ctrl-row">
+          <input class="ctrl-input" id="ctrl-iso" placeholder="e.g. FR" maxlength="3" style="text-transform:uppercase"/>
+          <select class="ctrl-select" id="ctrl-class">
+            <option value="">Unclaim</option>
+            <option value="1st">1st (Red)</option>
+            <option value="2nd">2nd (Green)</option>
+            <option value="5th">5th (Yellow)</option>
+            <option value="6th">6th (Blue)</option>
+          </select>
+          <button class="retro-btn sm" onclick="claimTerritory()">✓ SET</button>
+        </div>
+      </div>
+
+      <!-- BATTLE -->
+      <div class="retro-panel">
+        <h2>⚔️ BATTLE RESULT</h2>
+        <label class="ctrl-label">Attacker → Defender</label>
+        <div class="ctrl-row">
+          <select class="ctrl-select" id="b-atk">
+            <option value="1st">1st attacks</option>
+            <option value="2nd">2nd attacks</option>
+            <option value="5th">5th attacks</option>
+            <option value="6th">6th attacks</option>
+          </select>
+          <select class="ctrl-select" id="b-def">
+            <option value="2nd">→ 2nd</option>
+            <option value="1st">→ 1st</option>
+            <option value="5th">→ 5th</option>
+            <option value="6th">→ 6th</option>
+          </select>
+        </div>
+        <label class="ctrl-label" style="margin-top:6px">Territory (ISO code)</label>
+        <div class="ctrl-row">
+          <input class="ctrl-input" id="b-iso" placeholder="e.g. DE" maxlength="3" style="text-transform:uppercase"/>
+          <input class="ctrl-input" id="b-atk-roll" placeholder="Atk roll" type="number" min="1" max="30" style="width:80px"/>
+          <input class="ctrl-input" id="b-def-roll" placeholder="Def roll" type="number" min="1" max="30" style="width:80px"/>
+        </div>
+        <button class="retro-btn" style="width:100%;margin-top:4px;background:#cc0000;color:#fff;border-color:#fff" onclick="resolveBattle()">⚔️ RESOLVE BATTLE</button>
+      </div>
+
+      <!-- GOVERNMENT -->
+      <div class="retro-panel">
+        <h2>🏛️ GOVERNMENT</h2>
+        <div id="govt-rows"></div>
+      </div>
+
+      <!-- GOLD -->
+      <div class="retro-panel">
+        <h2>💰 GOLD AWARDS</h2>
+        <div id="gold-rows"></div>
+      </div>
+
+      <!-- SPECIAL WEAPONS -->
+      <div class="retro-panel">
+        <h2>☢️ SPECIAL WEAPONS</h2>
+        <label class="ctrl-label">Deploy for class:</label>
+        <select class="ctrl-select" id="w-class" style="width:100%;margin-bottom:8px">
+          <option value="1st">1st Hour (Red)</option>
+          <option value="2nd">2nd Hour (Green)</option>
+          <option value="5th">5th Hour (Yellow)</option>
+          <option value="6th">6th Hour (Blue)</option>
+        </select>
+        <label class="ctrl-label">Target class (for Civil Unrest):</label>
+        <select class="ctrl-select" id="w-target" style="width:100%;margin-bottom:8px">
+          <option value="1st">1st Hour (Red)</option>
+          <option value="2nd">2nd Hour (Green)</option>
+          <option value="5th">5th Hour (Yellow)</option>
+          <option value="6th">6th Hour (Blue)</option>
+        </select>
+        <div id="weapon-cards"></div>
+      </div>
+
+      <!-- PURCHASE UNIT -->
+      <div class="retro-panel">
+        <h2>🛒 PURCHASE UNIT</h2>
+        <div class="ctrl-row">
+          <select class="ctrl-select" id="buy-class">
+            <option value="1st">1st (Red)</option>
+            <option value="2nd">2nd (Green)</option>
+            <option value="5th">5th (Yellow)</option>
+            <option value="6th">6th (Blue)</option>
+          </select>
+          <select class="ctrl-select" id="buy-unit">
+            <option value="AIRBORNE_RANGER">🪂 Ranger $100</option>
+            <option value="TANK">🚗 Tank $200</option>
+            <option value="BOMBER">✈️ Bomber $350</option>
+            <option value="AIRCRAFT_CARRIER">🚢 Carrier $500</option>
+            <option value="SUBMARINE">🤿 Submarine $400</option>
+            <option value="BLOCKADE">🚧 Blockade $300</option>
+            <option value="CYBER_ATTACK">💻 Cyber $450</option>
+            <option value="NUCLEAR_WARHEAD">☢️ Nuke $1000</option>
+            <option value="ICBM">🚀 ICBM $800</option>
+            <option value="BOMBER_STRIKE">💣 Bomber Strike $600</option>
+            <option value="CIVIL_UNREST">👥 Civil Unrest $700</option>
+          </select>
+          <button class="retro-btn sm" onclick="buyUnit()">BUY</button>
+        </div>
+      </div>
+
+      <!-- SAVE / EXPORT -->
+      <div class="retro-panel">
+        <h2>💾 DATA</h2>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="retro-btn sm secondary" onclick="exportGame()">📤 Export</button>
+          <label class="retro-btn sm secondary" style="cursor:pointer">📥 Import<input type="file" accept=".json" onchange="importGame(event)" style="display:none"></label>
+          <button class="retro-btn sm danger" onclick="if(confirm('Reset ALL game data?'))resetGame()">🗑️ Reset</button>
+        </div>
+      </div>
+
+    </div><!-- /sidebar -->
+  </div>
+</div>
+
+<!-- ══════════════ MODALS ══════════════ -->
+<div class="modal-bg" id="pin-modal">
+  <div class="modal" style="max-width:320px;text-align:center">
+    <h2>🔐 TEACHER ACCESS</h2>
+    <p style="font-size:.85em;margin-bottom:14px;color:var(--bg)">Enter PIN to access controls</p>
+    <input class="pin-input" id="pin-in" type="password" maxlength="6" placeholder="••••" onkeydown="if(event.key==='Enter')checkPin()">
+    <div class="pin-err" id="pin-err"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="retro-btn" style="flex:1" onclick="checkPin()">UNLOCK</button>
+      <button class="retro-btn secondary" style="flex:1" onclick="closeModal('pin-modal')">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUTSCENE OVERLAY -->
+<div id="cutscene">
+  <div class="cs-label" id="cs-label">⚔️ INCOMING ATTACK</div>
+  <video id="cs-video" onended="endCutscene()">
+    <source id="cs-src" src="" type="video/mp4">
+  </video>
+  <div class="cs-skip" onclick="endCutscene()">▶ SKIP</div>
+</div>
+
+<div id="tt"></div>
+<div id="unrest-overlay"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════════
+const LEGACY = { '1st':56, '2nd':348, '5th':165, '6th':293 };
+
+const CLS = {
+  '1st':{ name:'1st Hour', color:'#cc2200', dot:'#cc2200', mapCls:'country-1st', emoji:'🔴' },
+  '2nd':{ name:'2nd Hour', color:'#00aa33', dot:'#00aa33', mapCls:'country-2nd', emoji:'🟢' },
+  '5th':{ name:'5th Hour', color:'#cc9900', dot:'#cc9900', mapCls:'country-5th', emoji:'🟡' },
+  '6th':{ name:'6th Hour', color:'#1155cc', dot:'#1155cc', mapCls:'country-6th', emoji:'🔵' },
+};
+
+const GOVTS = {
+  'Democracy':       { icon:'🗳️', bonus:'defense_plus1',  desc:'+1 to all defense rolls' },
+  'Republic':        { icon:'📜', bonus:'extra_claim',     desc:'Claim 1 EXTRA territory/turn' },
+  'Monarchy':        { icon:'👑', bonus:'divine_right',    desc:'Immune to Nuke & Cyber Attack' },
+  'Dictatorship':    { icon:'✊', bonus:'cheap_rangers',   desc:'Airborne Rangers cost $50' },
+  'Authoritarianism':{ icon:'🔒', bonus:'long_blockade',   desc:'Blockades last 2 weeks' },
+  'Totalitarianism': { icon:'⚡', bonus:'total_control',   desc:'+3 attack, -1 defense' },
+  'Oligarchy':       { icon:'💰', bonus:'gold_bonus',      desc:'+$500 bonus gold on set' },
+  'Theocracy':       { icon:'✝️', bonus:'cyber_immune',    desc:'Immune to Cyber Attack' },
+};
+
+const UNITS = {
+  'AIRBORNE_RANGER':  { name:'Airborne Ranger',  icon:'🪂', cost:100,  effect:'+1 attack roll',              stack:true,  max:null },
+  'TANK':             { name:'Tank',             icon:'🚗', cost:200,  effect:'+2 attack roll (max 3)',       stack:true,  max:3    },
+  'BOMBER':           { name:'Bomber',           icon:'✈️', cost:350,  effect:'Attack 2 territories, -2 each',stack:false, max:1    },
+  'AIRCRAFT_CARRIER': { name:'Aircraft Carrier', icon:'🚢', cost:500,  effect:'Cross-continent attack',       stack:false, max:1    },
+  'SUBMARINE':        { name:'Submarine',        icon:'🤿', cost:400,  effect:'Roll twice, take best',        stack:false, max:1    },
+  'BLOCKADE':         { name:'Blockade',         icon:'🚧', cost:300,  effect:'Block 1 incoming attack',      stack:false, max:1    },
+  'CYBER_ATTACK':     { name:'Cyber Attack',     icon:'💻', cost:450,  effect:"Remove enemy defense bonus",   stack:false, max:1    },
+  'NUCLEAR_WARHEAD':  { name:'Nuclear Warhead',  icon:'☢️', cost:1000, effect:'Auto-capture any territory',   stack:false, max:1, special:'nuke'   },
+  'ICBM':             { name:'ICBM',             icon:'🚀', cost:800,  effect:'+5 bonus to cross-cont. attack',stack:false,max:1, special:'icbm'   },
+  'BOMBER_STRIKE':    { name:'Bomber Strike',    icon:'💣', cost:600,  effect:'Force enemy to lose 1 territory',stack:false,max:1,special:'bomber' },
+  'CIVIL_UNREST':     { name:'Civil Unrest',     icon:'👥', cost:700,  effect:'Target class loses 2 turns',   stack:false, max:1, special:'unrest' },
+};
+
+// 5 Themes: [Location, Place, H-E Interaction, Movement, Region]
+const CV = {
+  'US':[5,5,5,5,5],'CN':[5,5,4,5,5],'RU':[5,5,3,4,5],'DE':[4,4,4,5,5],'GB':[5,4,3,5,5],
+  'FR':[4,4,4,4,5],'JP':[4,3,3,5,4],'IN':[4,4,4,4,4],'BR':[3,5,5,4,3],'CA':[3,5,4,4,4],
+  'AU':[3,5,3,4,3],'SA':[4,5,1,4,4],'TR':[5,3,3,4,3],'EG':[5,3,2,4,3],'IT':[4,3,4,5,4],
+  'ES':[4,3,4,4,4],'MX':[4,4,3,4,3],'KR':[4,3,3,5,4],'ID':[4,4,3,4,3],'NO':[4,5,3,4,4],
+  'SE':[3,4,4,4,4],'NL':[5,2,3,5,4],'PA':[5,2,2,5,2],'SG':[5,2,1,5,3],'AE':[4,5,1,5,3],
+  'PL':[3,3,3,3,3],'UA':[3,4,5,3,2],'AR':[3,4,5,3,3],'ZA':[3,4,3,3,3],'NG':[3,4,3,3,3],
+  'CH':[4,3,3,4,4],'BE':[4,2,3,4,4],'DK':[4,3,3,4,4],'AT':[4,2,3,4,3],'FI':[3,4,3,3,3],
+  'TW':[4,3,3,5,3],'MY':[4,4,3,4,3],'TH':[3,3,4,4,2],'VN':[3,3,4,3,2],'PH':[4,3,3,4,2],
+  'IL':[4,3,3,4,3],'QA':[4,5,1,4,2],'KW':[4,5,1,4,2],'IR':[4,5,2,3,2],'IQ':[3,5,1,3,2],
+  'OM':[4,4,1,3,2],'AZ':[3,3,2,3,2],'KZ':[3,5,2,3,3],'CL':[3,4,3,3,2],'CO':[3,4,4,3,2],
+  'PE':[3,4,3,2,2],'VE':[3,5,2,3,2],'MA':[4,3,3,3,2],'TN':[4,3,3,3,2],'PT':[4,3,3,4,3],
+  'HU':[3,2,4,3,2],'CZ':[3,2,3,3,3],'RO':[3,3,4,3,2],'GR':[4,2,3,4,2],'TT':[4,4,2,3,2],
+  'LY':[3,4,1,2,2],'DZ':[3,4,2,2,2],'EC':[3,4,3,2,2],'BD':[3,2,4,3,2],'PK':[3,3,3,2,2],
+  'LK':[4,2,3,4,2],'MM':[3,3,3,2,1],'KH':[3,2,4,2,1],'NZ':[3,3,4,3,3],'IE':[4,2,3,4,3],
+  'UZ':[2,3,2,2,2],'AF':[3,3,1,1,1],'GE':[3,2,3,3,2],'AM':[2,2,2,2,2],'BY':[2,2,3,3,2],
+  'CD':[2,5,3,1,1],'AO':[3,4,2,2,1],'TZ':[3,3,4,2,2],'KE':[3,2,3,2,2],'ET':[2,3,3,2,2],
+  'MZ':[3,3,3,2,1],'ZM':[2,4,3,2,1],'ZW':[2,3,3,2,1],'GH':[3,3,3,3,2],'CM':[2,3,3,2,1],
+  'CI':[3,3,4,3,2],'SN':[3,2,3,3,2],'SY':[4,3,2,2,1],'JO':[4,2,2,3,2],'LB':[4,2,2,3,2],
+  'HR':[4,2,3,3,2],'RS':[3,2,3,2,2],'BA':[3,2,3,2,1],'SK':[2,2,3,2,2],'SI':[3,2,3,3,2],
+  'BG':[3,2,3,3,2],'AL':[3,2,2,2,1],'MK':[2,2,2,2,1],'ME':[3,2,2,2,1],'MD':[2,2,3,2,1],
+  'LT':[3,2,3,3,2],'LV':[3,2,3,3,2],'EE':[3,2,3,3,3],'IS':[3,4,3,3,2],'UY':[3,3,5,3,2],
+  'PY':[2,2,4,2,1],'BO':[2,4,2,1,1],'GY':[2,3,3,2,1],'SR':[2,3,3,2,1],'MG':[3,3,3,2,2],
+  'NA':[2,4,1,2,1],'BW':[2,4,2,2,2],'LS':[1,2,2,1,1],'SZ':[1,2,2,1,1],
+  'ML':[2,3,2,1,1],'NE':[2,3,2,1,1],'BF':[2,2,3,1,1],'GN':[2,3,3,1,1],'SL':[2,3,3,2,1],
+  'LR':[2,3,3,2,1],'TG':[2,2,3,2,1],'BJ':[2,2,3,2,1],'MR':[2,3,1,1,1],'TD':[1,3,1,1,1],
+  'SD':[2,3,2,1,1],'SS':[1,3,2,1,1],'SO':[3,2,1,2,1],'DJ':[5,1,1,4,1],'ER':[3,1,1,2,1],
+  'CF':[1,3,2,1,1],'CG':[2,3,3,2,1],'GA':[3,3,2,2,1],'GQ':[3,4,2,2,1],'UG':[2,3,4,2,1],
+  'RW':[2,2,3,2,1],'BI':[1,1,2,1,1],'MW':[1,2,3,1,1],'TM':[2,4,1,1,1],'KG':[2,2,2,1,1],
+  'TJ':[2,2,2,1,1],'NP':[2,3,2,1,1],'BT':[2,2,2,1,1],'LA':[2,3,3,1,1],'KP':[2,3,1,1,1],
+  'MN':[2,3,1,1,1],'GT':[3,2,3,2,1],'BZ':[3,2,3,2,1],'HN':[3,2,3,2,1],'SV':[3,2,3,2,1],
+  'NI':[3,2,3,2,1],'CR':[3,2,4,3,2],'CU':[3,2,3,3,2],'HT':[3,1,2,2,1],'DO':[3,2,3,3,2],
+  'JM':[3,2,3,3,2],'YE':[3,3,1,2,1],'PS':[3,1,2,2,1],'TL':[3,3,2,2,1],'BN':[4,4,1,4,2],
+  'PG':[3,4,3,2,1],'FJ':[3,2,3,3,1],'GM':[2,1,2,2,1],'BH':[4,4,1,4,2]
+};
+
+const N2A2 = {
+  4:'AF',8:'AL',12:'DZ',24:'AO',32:'AR',36:'AU',40:'AT',50:'BD',56:'BE',64:'BT',68:'BO',
+  70:'BA',72:'BW',76:'BR',84:'BZ',100:'BG',104:'MM',116:'KH',120:'CM',124:'CA',140:'CF',
+  144:'LK',148:'TD',152:'CL',156:'CN',170:'CO',178:'CG',180:'CD',188:'CR',191:'HR',
+  192:'CU',204:'BJ',208:'DK',214:'DO',218:'EC',222:'SV',226:'GQ',231:'ET',232:'ER',
+  246:'FI',250:'FR',262:'DJ',266:'GA',268:'GE',276:'DE',288:'GH',300:'GR',320:'GT',
+  324:'GN',332:'HT',340:'HN',348:'HU',356:'IN',360:'ID',364:'IR',368:'IQ',372:'IE',
+  376:'IL',380:'IT',388:'JM',392:'JP',398:'KZ',400:'JO',404:'KE',408:'KP',410:'KR',
+  414:'KW',417:'KG',418:'LA',422:'LB',426:'LS',428:'LV',430:'LR',434:'LY',440:'LT',
+  450:'MG',454:'MW',458:'MY',466:'ML',478:'MR',484:'MX',496:'MN',498:'MD',499:'ME',
+  504:'MA',508:'MZ',516:'NA',524:'NP',528:'NL',554:'NZ',558:'NI',562:'NE',566:'NG',
+  578:'NO',586:'PK',591:'PA',598:'PG',600:'PY',604:'PE',608:'PH',616:'PL',620:'PT',
+  626:'TL',634:'QA',642:'RO',643:'RU',646:'RW',682:'SA',686:'SN',694:'SL',703:'SK',
+  704:'VN',706:'SO',710:'ZA',716:'ZW',724:'ES',729:'SD',740:'SR',748:'SZ',752:'SE',
+  756:'CH',760:'SY',762:'TJ',764:'TH',768:'TG',788:'TN',792:'TR',795:'TM',800:'UG',
+  804:'UA',784:'AE',807:'MK',818:'EG',826:'GB',840:'US',858:'UY',860:'UZ',862:'VE',
+  887:'YE',894:'ZM',31:'AZ',51:'AM',96:'BN',112:'BY',275:'PS',203:'CZ',231:'ET',270:'GM',
+  324:'GN',748:'SZ',792:'TR',832:'JE',833:'IM',336:'VA',438:'LI',442:'LU',470:'MT',
+  492:'MC',674:'SM',352:'IS',191:'HR',688:'RS',760:'SY',232:'ER',706:'SO',706:'SO'
+};
+
+const NAMES = {
+  'AF':'Afghanistan','AL':'Albania','DZ':'Algeria','AO':'Angola','AR':'Argentina','AU':'Australia',
+  'AT':'Austria','AZ':'Azerbaijan','BD':'Bangladesh','BE':'Belgium','BZ':'Belize','BJ':'Benin',
+  'BT':'Bhutan','BO':'Bolivia','BA':'Bosnia','BW':'Botswana','BR':'Brazil','BN':'Brunei',
+  'BG':'Bulgaria','BF':'Burkina Faso','BI':'Burundi','CM':'Cameroon','CA':'Canada','CF':'C. African Rep.',
+  'TD':'Chad','CL':'Chile','CN':'China','CO':'Colombia','CG':'Congo','CD':'DR Congo',
+  'CR':'Costa Rica','HR':'Croatia','CU':'Cuba','CZ':'Czechia','DK':'Denmark','DJ':'Djibouti',
+  'DO':'Dominican Rep.','EC':'Ecuador','EG':'Egypt','SV':'El Salvador','GQ':'Eq. Guinea','ER':'Eritrea',
+  'ET':'Ethiopia','FI':'Finland','FR':'France','GA':'Gabon','GM':'Gambia','GE':'Georgia',
+  'DE':'Germany','GH':'Ghana','GR':'Greece','GT':'Guatemala','GN':'Guinea','HT':'Haiti',
+  'HN':'Honduras','HU':'Hungary','IS':'Iceland','IN':'India','ID':'Indonesia','IR':'Iran',
+  'IQ':'Iraq','IE':'Ireland','IL':'Israel','IT':'Italy','JM':'Jamaica','JP':'Japan',
+  'JO':'Jordan','KZ':'Kazakhstan','KE':'Kenya','KP':'N. Korea','KR':'S. Korea','KW':'Kuwait',
+  'KG':'Kyrgyzstan','LA':'Laos','LB':'Lebanon','LS':'Lesotho','LR':'Liberia','LY':'Libya',
+  'LT':'Lithuania','LV':'Latvia','MK':'N. Macedonia','MG':'Madagascar','MW':'Malawi',
+  'MY':'Malaysia','ML':'Mali','MR':'Mauritania','MX':'Mexico','MD':'Moldova','MN':'Mongolia',
+  'MA':'Morocco','MZ':'Mozambique','MM':'Myanmar','NA':'Namibia','NP':'Nepal','NL':'Netherlands',
+  'NZ':'New Zealand','NI':'Nicaragua','NE':'Niger','NG':'Nigeria','NO':'Norway','OM':'Oman',
+  'PK':'Pakistan','PA':'Panama','PG':'Papua New Guinea','PY':'Paraguay','PE':'Peru',
+  'PH':'Philippines','PL':'Poland','PT':'Portugal','QA':'Qatar','RO':'Romania','RU':'Russia',
+  'RW':'Rwanda','SA':'Saudi Arabia','SN':'Senegal','RS':'Serbia','SL':'Sierra Leone',
+  'SK':'Slovakia','SI':'Slovenia','SO':'Somalia','ZA':'South Africa','SS':'South Sudan',
+  'ES':'Spain','LK':'Sri Lanka','SD':'Sudan','SR':'Suriname','SZ':'Eswatini','SE':'Sweden',
+  'CH':'Switzerland','SY':'Syria','TW':'Taiwan','TJ':'Tajikistan','TZ':'Tanzania','TH':'Thailand',
+  'TL':'Timor-Leste','TG':'Togo','TN':'Tunisia','TR':'Turkey','TM':'Turkmenistan','UG':'Uganda',
+  'UA':'Ukraine','AE':'UAE','GB':'United Kingdom','US':'United States','UY':'Uruguay',
+  'UZ':'Uzbekistan','VE':'Venezuela','VN':'Vietnam','YE':'Yemen','ZM':'Zambia','ZW':'Zimbabwe',
+  'GY':'Guyana','ME':'Montenegro','AM':'Armenia','BY':'Belarus','CZ':'Czechia','FJ':'Fiji',
+  'PS':'Palestine','BH':'Bahrain','AZ':'Azerbaijan','CU':'Cuba','DO':'Dominican Rep.','LV':'Latvia',
+  'LT':'Lithuania','EE':'Estonia','BN':'Brunei','TT':'Trinidad & Tobago','JM':'Jamaica',
+  'BZ':'Belize','GT':'Guatemala','HN':'Honduras','SV':'El Salvador','NI':'Nicaragua','CR':'Costa Rica',
+  'EC':'Ecuador','BO':'Bolivia','PY':'Paraguay','UY':'Uruguay','GY':'Guyana','SR':'Suriname',
+  'CI':'Ivory Coast','GH':'Ghana','BJ':'Benin','TG':'Togo','BF':'Burkina Faso','ML':'Mali',
+  'MR':'Mauritania','GN':'Guinea','SL':'Sierra Leone','LR':'Liberia','CM':'Cameroon',
+  'CF':'C. African Rep.','CG':'Congo','CD':'DR Congo','GA':'Gabon','GQ':'Eq. Guinea',
+  'SS':'S. Sudan','ER':'Eritrea','DJ':'Djibouti','SO':'Somalia','UG':'Uganda','RW':'Rwanda',
+  'BI':'Burundi','TZ':'Tanzania','MZ':'Mozambique','ZM':'Zambia','MW':'Malawi','ZW':'Zimbabwe',
+  'NA':'Namibia','BW':'Botswana','LS':'Lesotho','SZ':'Eswatini','MG':'Madagascar','AO':'Angola',
+  'TD':'Chad','NE':'Niger','SD':'Sudan','ET':'Ethiopia','KE':'Kenya','GH':'Ghana'
+};
+
+function cval(iso){ const v=CV[iso]; return v?v.reduce((a,b)=>a+b,0):5; }
+function cname(iso){ return NAMES[iso]||iso; }
+
+// ── VIDEO PATHS (update when you have your videos) ──
+const VIDEOS = {
+  icbm:    'videos/icbm.mp4',
+  nuke:    'videos/nuke.mp4',
+  bomber:  'videos/bomber.mp4',
+  unrest:  'videos/civilunrest.mp4',
+  battle:  'videos/battle.mp4',
+  win:     'videos/win.mp4',
+  lose:    'videos/lose.mp4',
+};
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════
+const SK = { OWN:'TWC2_OWN', GOLD:'TWC2_GOLD', INV:'TWC2_INV', GOVT:'TWC2_GOVT', BLOK:'TWC2_BLOK', SKIP:'TWC2_SKIP', LOG:'TWC2_LOG' };
+
+function loadState(){
+  const s={};
+  s.own   = JSON.parse(localStorage.getItem(SK.OWN) ||'{}');      // {} = all unclaimed
+  s.gold  = JSON.parse(localStorage.getItem(SK.GOLD)||'{"1st":0,"2nd":0,"5th":0,"6th":0}');
+  s.inv   = JSON.parse(localStorage.getItem(SK.INV) ||'{"1st":{},"2nd":{},"5th":{},"6th":{}}');
+  s.govt  = JSON.parse(localStorage.getItem(SK.GOVT)||'{"1st":null,"2nd":null,"5th":null,"6th":null}');
+  s.blok  = JSON.parse(localStorage.getItem(SK.BLOK)||'{}');       // iso→expiry ISO string
+  s.skip  = JSON.parse(localStorage.getItem(SK.SKIP)||'{"1st":0,"2nd":0,"5th":0,"6th":0}'); // turns to skip
+  s.log   = JSON.parse(localStorage.getItem(SK.LOG) ||'[]');
+  for(const c of ['1st','2nd','5th','6th']){ if(!s.inv[c])s.inv[c]={}; if(!s.gold[c])s.gold[c]=0; if(!s.skip[c])s.skip[c]=0; }
+  return s;
+}
+function saveState(){
+  localStorage.setItem(SK.OWN,  JSON.stringify(S.own));
+  localStorage.setItem(SK.GOLD, JSON.stringify(S.gold));
+  localStorage.setItem(SK.INV,  JSON.stringify(S.inv));
+  localStorage.setItem(SK.GOVT, JSON.stringify(S.govt));
+  localStorage.setItem(SK.BLOK, JSON.stringify(S.blok));
+  localStorage.setItem(SK.SKIP, JSON.stringify(S.skip));
+  localStorage.setItem(SK.LOG,  JSON.stringify(S.log.slice(-50))); // keep last 50 entries
+}
+
+let S = loadState();
+
+function score(cls){
+  let pts=LEGACY[cls]||0;
+  for(const [iso,owner] of Object.entries(S.own)) if(owner===cls) pts+=cval(iso);
+  return pts;
+}
+function terrCount(cls){ return Object.values(S.own).filter(o=>o===cls).length; }
+
+function addLog(msg){
+  const ts=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  S.log.unshift(`[${ts}] ${msg}`);
+  saveState();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MAP
+// ═══════════════════════════════════════════════════════════════════
+let svg, proj, path, cpaths;
+
+async function initMap(){
+  const el=document.getElementById('map-wrap');
+  const w=el.clientWidth, h=el.clientHeight;
+  svg=d3.select('#map-svg').attr('viewBox',`0 0 ${w} ${h}`);
+  proj=d3.geoMercator().scale(w/6.4).translate([w/2,h/1.58]);
+  path=d3.geoPath().projection(proj);
+  // ocean bg is handled by video
+  let world;
+  try{ world=await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'); }
+  catch(e){ el.innerHTML='<div style="color:#ff3333;padding:30px;text-align:center;font-family:monospace">⚠️ Map failed to load — check internet</div>'; return; }
+  const countries=topojson.feature(world,world.objects.countries);
+  cpaths=svg.selectAll('.country').data(countries.features).join('path')
+    .attr('class',d=>mapCls(N2A2[parseInt(d.id)]))
+    .attr('d',path)
+    .attr('data-iso',d=>N2A2[parseInt(d.id)]||'')
+    .on('mouseover',mapOver).on('mousemove',mapMove).on('mouseout',mapOut).on('click',mapClick);
+  svg.append('path').datum(topojson.mesh(world,world.objects.countries,(a,b)=>a!==b))
+    .attr('fill','none').attr('stroke','#4a6060').attr('stroke-width',.4).attr('d',path);
+}
+
+function mapCls(iso){
+  const owner=iso?S.own[iso]:null;
+  let c='country '+(owner?CLS[owner].mapCls:'country-unclaimed');
+  if(iso&&S.blok[iso]&&new Date()<new Date(S.blok[iso])) c+=' country-skipped';
+  return c;
+}
+function refreshMap(){ if(cpaths) cpaths.attr('class',d=>mapCls(N2A2[parseInt(d.id)])); }
+
+function mapOver(event,d){
+  const iso=N2A2[parseInt(d.id)]; if(!iso) return;
+  const owner=S.own[iso]; const pts=cval(iso);
+  const tt=document.getElementById('tt');
+  tt.innerHTML=`<strong>${cname(iso)}</strong> [${iso}] &nbsp; <span style="color:#ffff00">${pts} pts</span><br><span style="color:${owner?CLS[owner].color:'#555'}">${owner?CLS[owner].name:'Unclaimed'}</span>`;
+  tt.style.display='block';
+}
+function mapMove(event){ const tt=document.getElementById('tt'); tt.style.left=(event.clientX+12)+'px'; tt.style.top=(event.clientY+8)+'px'; }
+function mapOut(){ document.getElementById('tt').style.display='none'; }
+
+function mapClick(event,d){
+  const iso=N2A2[parseInt(d.id)]; if(!iso) return;
+  const owner=S.own[iso];
+  const v=CV[iso]||[1,1,1,1,1];
+  const labels=['📍 Location','🌋 Place','🌱 H-E Int.','🚢 Movement','🌍 Region'];
+  const el=document.getElementById('map-country-info');
+  el.style.display='block';
+  el.innerHTML=`<strong style="color:#ffff00;font-size:1.1em">${cname(iso)}</strong>
+    <span style="color:#888;font-size:.85em"> [${iso}]</span>
+    <span style="background:${owner?CLS[owner].color:'#333'};color:#fff;padding:1px 8px;font-size:.75em;margin-left:8px">${owner?CLS[owner].name:'UNCLAIMED'}</span><br>
+    <div style="margin-top:6px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+    ${v.map((n,i)=>`<span style="color:#aaa;font-size:.72em">${labels[i]}: <span style="color:#ffff00">${n}</span></span>`).join('')}
+    </div>
+    <div style="margin-top:4px;color:#ffff00;font-weight:700">🌐 Total: ${v.reduce((a,b)=>a+b,0)} pts</div>`;
+  // Auto-fill ctrl inputs
+  document.getElementById('ctrl-iso').value=iso;
+  document.getElementById('b-iso').value=iso;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// LEADERBOARD RENDER
+// ═══════════════════════════════════════════════════════════════════
+function renderLB(){
+  const rows=['1st','2nd','5th','6th']
+    .map(c=>({c,s:score(c),t:terrCount(c)}))
+    .sort((a,b)=>b.s-a.s);
+  const emojis=['🥇','🥈','🥉','4️⃣'];
+
+  // Teacher sidebar
+  let th='';
+  rows.forEach((r,i)=>{
+    const cl=CLS[r.c], g=S.govt[r.c], sk=S.skip[r.c]||0;
+    th+=`<div class="lb-row">
+      <span>${emojis[i]}</span>
+      <div class="lb-dot" style="background:${cl.color}"></div>
+      <div>
+        <div style="font-weight:700;color:${cl.color}">${cl.name}</div>
+        <div style="font-size:.7em;color:#888">${r.t} territories${sk>0?`<span class="skip-badge">⏸ SKIP ${sk}</span>`:''}</div>
+        ${g?`<span class="govt-badge">${GOVTS[g].icon} ${g}</span>`:''}
+      </div>
+      <div class="lb-pts">$${(S.gold[r.c]||0).toLocaleString()}💰<br>${r.s.toLocaleString()} pts</div>
+    </div>`;
+  });
+  const tlb=document.getElementById('t-lb');
+  if(tlb) tlb.innerHTML=th;
+
+  // Student table
+  let sh='<thead><tr><th></th><th>CLASS</th><th>TERR.</th><th>PTS</th><th>STATUS</th></tr></thead><tbody>';
+  rows.forEach((r,i)=>{
+    const cl=CLS[r.c], g=S.govt[r.c], sk=S.skip[r.c]||0;
+    sh+=`<tr class="${i===0?'rank-1':''}">
+      <td>${emojis[i]}</td>
+      <td style="color:${cl.color}">${cl.emoji} ${cl.name}</td>
+      <td>${r.t}</td>
+      <td><strong>${r.s.toLocaleString()}</strong></td>
+      <td>${g?`<span class="govt-badge">${GOVTS[g].icon}</span>`:'-'}${sk>0?`<span class="skip-badge">⏸${sk}</span>`:''}</td>
+    </tr>`;
+  });
+  sh+='</tbody>';
+  const slb=document.getElementById('s-leaderboard');
+  if(slb) slb.innerHTML=sh;
+}
+
+function renderStudentView(period){
+  const cls=['1st','2nd','5th','6th'].find(c=>parseInt(c)===period)||'1st';
+  const cl=CLS[cls];
+  document.getElementById('s-subhead').textContent=`Period ${period} · ${cl.name} EMPIRE`;
+  document.getElementById('s-header').style.background=cl.color;
+
+  // Stats
+  const sk=S.skip[cls]||0;
+  let stats=`
+    <div class="stat-line">Legacy Points <span class="stat-val">${LEGACY[cls]}</span></div>
+    <div class="stat-line">Territory Points <span class="stat-val">${score(cls)-LEGACY[cls]}</span></div>
+    <div class="stat-line">Total Score <span class="stat-val">${score(cls)}</span></div>
+    <div class="stat-line">Territories <span class="stat-val">${terrCount(cls)}</span></div>
+    <div class="stat-line">Gold <span class="stat-val">$${(S.gold[cls]||0).toLocaleString()}</span></div>
+    ${sk>0?`<div class="stat-line" style="color:#ff3333">⏸ TURNS SKIPPED <span class="stat-val" style="color:#ff3333">${sk}</span></div>`:''}
+  `;
+  document.getElementById('s-stats').innerHTML=stats;
+
+  // Inventory
+  const inv=S.inv[cls]||{};
+  const unitKeys=Object.keys(UNITS);
+  let invHtml='';
+  for(const k of unitKeys){
+    const qty=inv[k]||0;
+    if(qty>0) invHtml+=`<div class="inv-item"><div class="iname">${UNITS[k].icon} ${UNITS[k].name}</div><div class="iqty">×${qty}</div></div>`;
+  }
+  document.getElementById('s-inventory').innerHTML=invHtml||'<div style="color:#555;font-size:.85em;padding:8px">No units in inventory</div>';
+
+  // Govt
+  const g=S.govt[cls];
+  document.getElementById('s-govt').innerHTML=g
+    ?`<span class="govt-badge" style="font-size:.9em">${GOVTS[g].icon} ${g}</span><br><span style="color:#aaa;font-size:.8em">${GOVTS[g].desc}</span>`
+    :'<span style="color:#555">Not yet assigned</span>';
+
+  // Battle log
+  const logEl=document.getElementById('s-log');
+  if(logEl) logEl.innerHTML=S.log.map(l=>`<div style="margin-bottom:3px;border-bottom:1px dashed #1a2a1a;padding-bottom:2px">${l}</div>`).join('')||'<span style="color:#555">No battles yet</span>';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TEACHER PANEL RENDERS
+// ═══════════════════════════════════════════════════════════════════
+function renderTeacherUI(){
+  // Govt
+  let gh='';
+  for(const c of ['1st','2nd','5th','6th']){
+    const cl=CLS[c];
+    gh+=`<div style="margin-bottom:6px">
+      <div style="font-size:.8em;font-weight:700;color:${cl.color};margin-bottom:2px">${cl.emoji} ${cl.name}</div>
+      <div class="ctrl-row">
+        <select class="ctrl-select" style="flex:1" id="govt-${c}" onchange="setGovt('${c}',this.value)">
+          <option value="">— Not Set —</option>
+          ${Object.entries(GOVTS).map(([k,v])=>`<option value="${k}" ${S.govt[c]===k?'selected':''}>${v.icon} ${k}</option>`).join('')}
+        </select>
+      </div>
+      ${S.govt[c]?`<div style="font-size:.68em;color:#888;margin-top:2px">${GOVTS[S.govt[c]].desc}</div>`:''}
+    </div>`;
+  }
+  document.getElementById('govt-rows').innerHTML=gh;
+
+  // Gold
+  let gg='';
+  for(const c of ['1st','2nd','5th','6th']){
+    const cl=CLS[c];
+    gg+=`<div class="gold-row">
+      <span style="color:${cl.color};font-weight:700;width:60px">${cl.emoji} ${c}</span>
+      <span class="gold-amt">$${(S.gold[c]||0).toLocaleString()}</span>
+      <button class="retro-btn sm" onclick="addGold('${c}',50)">+50</button>
+      <button class="retro-btn sm" onclick="addGold('${c}',100)">+100</button>
+      <button class="retro-btn sm" onclick="addGold('${c}',200)">+200</button>
+    </div>`;
+  }
+  document.getElementById('gold-rows').innerHTML=gg;
+
+  // Weapon cards
+  const specials=['NUCLEAR_WARHEAD','ICBM','BOMBER_STRIKE','CIVIL_UNREST'];
+  let wh='';
+  for(const k of specials){
+    const u=UNITS[k];
+    wh+=`<div class="weapon-card">
+      <div class="weapon-name">${u.icon} ${u.name}</div>
+      <div class="weapon-effect">${u.effect}</div>
+      <div class="weapon-cost">Cost: $${u.cost.toLocaleString()}</div>
+      <button class="retro-btn sm danger" style="margin-top:6px;width:100%" onclick="deployWeapon('${k}')">⚡ DEPLOY</button>
+    </div>`;
+  }
+  document.getElementById('weapon-cards').innerHTML=wh;
+
+  renderLB();
+  document.getElementById('t-date').textContent=new Date().toLocaleDateString();
+}
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// TEACHER ACTIONS
+// ═══════════════════════════════════════════════════════════════════
+function claimTerritory(){
+  const iso=document.getElementById('ctrl-iso').value.trim().toUpperCase();
+  const cls=document.getElementById('ctrl-class').value;
+  if(!iso){ alert('Enter a country ISO code'); return; }
+  if(cls) S.own[iso]=cls;
+  else delete S.own[iso];
+  saveState(); refreshMap(); renderLB();
+  addLog(`🗺️ ${cname(iso)} → ${cls?CLS[cls].name:'Unclaimed'}`);
+  alert(`✅ ${cname(iso)} set to ${cls?CLS[cls].name:'Unclaimed'}`);
+}
+
+function setGovt(cls, govt){
+  S.govt[cls]=govt||null;
+  if(govt==='Oligarchy'&&!S.gold[cls+'_olg']){
+    S.gold[cls]=(S.gold[cls]||0)+500;
+    S.gold[cls+'_olg']=true;
+    addLog(`💰 ${CLS[cls].name} selected Oligarchy — +$500 bonus!`);
+  }
+  saveState(); renderTeacherUI();
+  addLog(`🏛️ ${CLS[cls].name} government → ${govt||'none'}`);
+}
+
+function addGold(cls, amount){
+  S.gold[cls]=(S.gold[cls]||0)+amount;
+  saveState(); renderTeacherUI();
+  addLog(`💰 ${CLS[cls].name} received +$${amount} gold`);
+}
+
+function buyUnit(){
+  const cls=document.getElementById('buy-class').value;
+  const uk=document.getElementById('buy-unit').value;
+  const u=UNITS[uk]; if(!u) return;
+  let cost=u.cost;
+  if(uk==='AIRBORNE_RANGER'&&S.govt[cls]==='Dictatorship') cost=50;
+  const inv=S.inv[cls];
+  const cur=inv[uk]||0;
+  if(!u.stack&&cur>=1){ alert(`${CLS[cls].name} already has a ${u.name}!`); return; }
+  if(u.max&&cur>=u.max){ alert(`Max ${u.max} ${u.name} reached!`); return; }
+  if((S.gold[cls]||0)<cost){ alert(`Need $${cost}, only have $${S.gold[cls]||0}!`); return; }
+  S.gold[cls]-=cost;
+  inv[uk]=(inv[uk]||0)+1;
+  saveState(); renderTeacherUI();
+  addLog(`🛒 ${CLS[cls].name} purchased ${u.icon} ${u.name} (-$${cost})`);
+  alert(`✅ ${u.icon} ${u.name} added to ${CLS[cls].name}! ($${S.gold[cls]} remaining)`);
+}
+
+// ─── BATTLE RESOLUTION ───
+function resolveBattle(){
+  const atk=document.getElementById('b-atk').value;
+  const def=document.getElementById('b-def').value;
+  const iso=document.getElementById('b-iso').value.trim().toUpperCase();
+  const ar=parseInt(document.getElementById('b-atk-roll').value)||0;
+  const dr=parseInt(document.getElementById('b-def-roll').value)||0;
+  if(atk===def){ alert('Attacker and defender must be different!'); return; }
+  if(!ar||!dr){ alert('Enter both roll values!'); return; }
+
+  // Check blockade
+  if(iso&&S.blok[iso]&&new Date()<new Date(S.blok[iso])){
+    alert(`🚧 ${cname(iso)} is BLOCKADED! Attack cannot proceed.`); return;
+  }
+
+  // Check civil unrest skip
+  if(S.skip[atk]>0){
+    const proceed=confirm(`⏸ ${CLS[atk].name} is under CIVIL UNREST (${S.skip[atk]} turns remaining).\nThey lose this turn. Proceed to reduce count?`);
+    if(proceed){ S.skip[atk]--; saveState(); renderTeacherUI(); addLog(`⏸ ${CLS[atk].name} skipped turn (unrest). ${S.skip[atk]} remaining.`); }
+    return;
+  }
+
+  // Calculate mods
+  const atkMod=calcAtkMod(atk,def);
+  const defMod=calcDefMod(def,atk);
+  const atkTotal=ar+atkMod;
+  const defTotal=dr+defMod;
+  const atkWins=atkTotal>defTotal;
+
+  const modStr=`${CLS[atk].name}: ${ar}+${atkMod}=${atkTotal} vs ${CLS[def].name}: ${dr}+${defMod}=${defTotal}`;
+  let result='';
+
+  if(atkWins){
+    if(iso){ S.own[iso]=atk; }
+    result=`⚔️ ${CLS[atk].name} WINS! ${iso?cname(iso)+' captured!':''} (${modStr})`;
+    playCutscene('battle');
+  } else {
+    result=`🛡️ ${CLS[def].name} DEFENDS! (${modStr}) — TIE goes to defender`;
+  }
+
+  saveState(); refreshMap(); renderLB();
+  addLog(result);
+  alert(result);
+  document.getElementById('b-atk-roll').value='';
+  document.getElementById('b-def-roll').value='';
+}
+
+function calcAtkMod(cls,defCls){
+  const inv=S.inv[cls]||{};
+  const govt=S.govt[cls];
+  let mod=0;
+  mod+=(inv['AIRBORNE_RANGER']||0);                // +1 each
+  mod+=(Math.min(inv['TANK']||0,3))*2;              // +2 each, max 3
+  if(govt==='Totalitarianism') mod+=3;
+  return mod;
+}
+
+function calcDefMod(cls,atkCls){
+  const govt=S.govt[cls];
+  const atkInv=S.inv[atkCls]||{};
+  let mod=0;
+  if(govt==='Democracy'){
+    if((atkInv['CYBER_ATTACK']||0)>0){
+      atkInv['CYBER_ATTACK']--; // consume it
+      S.inv[atkCls]=atkInv;
+      addLog(`💻 Cyber Attack used! ${CLS[cls].name}'s Democracy bonus neutralized.`);
+    } else { mod+=1; }
+  }
+  if(govt==='Totalitarianism') mod-=1;
+  return mod;
+}
+
+// ─── SPECIAL WEAPONS ───
+function deployWeapon(uk){
+  const cls=document.getElementById('w-class').value;
+  const target=document.getElementById('w-target').value;
+  const u=UNITS[uk];
+  const inv=S.inv[cls];
+  if(!(inv[uk]>0)){ alert(`${CLS[cls].name} has no ${u.name}!`); return; }
+
+  const special=u.special;
+
+  if(special==='nuke'){
+    // Check monarchy immunity
+    if(S.govt[target]==='Monarchy'){
+      alert(`👑 DIVINE RIGHT! ${CLS[target].name}'s Monarchy blocks the Nuclear Warhead!`);
+      inv[uk]--;
+      saveState(); renderTeacherUI();
+      addLog(`☢️ ${CLS[cls].name} fired Nuclear Warhead → blocked by ${CLS[target].name}'s Divine Right!`);
+      return;
+    }
+    const iso=prompt('Enter territory ISO code to auto-capture:','').trim().toUpperCase();
+    if(!iso) return;
+    S.own[iso]=cls;
+    inv[uk]--;
+    saveState(); refreshMap(); renderLB(); renderTeacherUI();
+    addLog(`☢️ NUCLEAR STRIKE! ${CLS[cls].name} auto-captures ${cname(iso)}!`);
+    playCutscene('nuke');
+    alert(`☢️ ${cname(iso)} CAPTURED by nuclear strike!`);
+  }
+  else if(special==='icbm'){
+    alert(`🚀 ICBM LAUNCHED by ${CLS[cls].name}! +5 bonus added to next cross-continental attack roll.`);
+    inv[uk]--;
+    saveState(); renderTeacherUI();
+    addLog(`🚀 ${CLS[cls].name} launched ICBM — +5 to next cross-continental roll`);
+    playCutscene('icbm');
+  }
+  else if(special==='bomber'){
+    const iso=prompt('Enter territory ISO code to force enemy to lose:','').trim().toUpperCase();
+    if(!iso) return;
+    const owner=S.own[iso];
+    if(!owner){ alert('Territory is unclaimed — no effect.'); return; }
+    delete S.own[iso];
+    inv[uk]--;
+    saveState(); refreshMap(); renderLB(); renderTeacherUI();
+    addLog(`✈️ BOMBER STRIKE! ${CLS[cls].name} forces ${CLS[owner]?.name||owner} to lose ${cname(iso)}!`);
+    playCutscene('bomber');
+    alert(`✈️ Bomber Strike! ${cname(iso)} is now unclaimed!`);
+  }
+  else if(special==='unrest'){
+    // Check monarchy / theocracy immunity
+    if(S.govt[target]==='Monarchy'||S.govt[target]==='Theocracy'){
+      alert(`🛡️ ${CLS[target].name}'s ${S.govt[target]} blocks Civil Unrest!`);
+      return;
+    }
+    S.skip[target]=(S.skip[target]||0)+2;
+    inv[uk]--;
+    saveState(); renderTeacherUI(); renderLB();
+    addLog(`👥 CIVIL UNREST! ${CLS[cls].name} targets ${CLS[target].name} — loses next 2 turns!`);
+    playCutscene('unrest');
+    flashUnrest();
+    alert(`👥 CIVIL UNREST! ${CLS[target].name} loses their next 2 turns!`);
+  }
+}
+
+// ─── CUTSCENE PLAYER ───
+function playCutscene(type){
+  const vpath=VIDEOS[type];
+  if(!vpath) return; // no video = skip
+  const el=document.getElementById('cutscene');
+  const src=document.getElementById('cs-src');
+  const vid=document.getElementById('cs-video');
+  const lbl=document.getElementById('cs-label');
+  const labels={icbm:'🚀 ICBM LAUNCH!',nuke:'☢️ NUCLEAR STRIKE!',bomber:'✈️ BOMBER STRIKE!',unrest:'👥 CIVIL UNREST!',battle:'⚔️ BATTLE!',win:'🎉 VICTORY!',lose:'🛡️ DEFENSE HOLDS!'};
+  lbl.textContent=labels[type]||'⚔️ INCOMING!';
+  src.src=vpath;
+  vid.load();
+  vid.play().catch(()=>{}); // graceful fail if no video
+  el.classList.add('open');
+}
+
+function endCutscene(){
+  const el=document.getElementById('cutscene');
+  const vid=document.getElementById('cs-video');
+  vid.pause();
+  el.classList.remove('open');
+}
+
+function flashUnrest(){
+  const el=document.getElementById('unrest-overlay');
+  el.style.display='block';
+  setTimeout(()=>el.style.display='none',1800);
+}
+
+// ─── EXPORT / IMPORT / RESET ───
+function exportGame(){
+  const data={exported:new Date().toISOString(),state:{[SK.OWN]:JSON.stringify(S.own),[SK.GOLD]:JSON.stringify(S.gold),[SK.INV]:JSON.stringify(S.inv),[SK.GOVT]:JSON.stringify(S.govt),[SK.BLOK]:JSON.stringify(S.blok),[SK.SKIP]:JSON.stringify(S.skip),[SK.LOG]:JSON.stringify(S.log)}};
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download='TWC_Modern_v2.json'; a.click();
+  alert('✅ Game state exported!');
+}
+
+function importGame(event){
+  const file=event.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      const st=data.state||data;
+      for(const[k,v] of Object.entries(st)) localStorage.setItem(k,v);
+      S=loadState(); refreshMap(); renderLB(); renderTeacherUI();
+      alert('✅ Game state imported!');
+    }catch(err){ alert('Import failed: '+err.message); }
+  };
+  r.readAsText(file);
+}
+
+function resetGame(){
+  for(const k of Object.values(SK)) localStorage.removeItem(k);
+  S=loadState(); refreshMap(); renderLB(); renderTeacherUI();
+  alert('✅ Game reset — all territories unclaimed, scores at legacy values.');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// NAVIGATION + PIN
+// ═══════════════════════════════════════════════════════════════════
+const PIN='1449';
+
+function goLogin(){ show('login-screen'); }
+
+function goStudent(period){
+  show('student-screen');
+  renderLB();
+  renderStudentView(period);
+}
+
+function goTeacher(){
+  show('teacher-screen');
+  initMap().then(()=>{
+    renderTeacherUI();
+  });
+}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function openPinModal(){
+  document.getElementById('pin-in').value='';
+  document.getElementById('pin-err').textContent='';
+  document.getElementById('pin-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('pin-in').focus(),100);
+}
+
+function checkPin(){
+  if(document.getElementById('pin-in').value===PIN){
+    closeModal('pin-modal');
+    goTeacher();
+  } else {
+    document.getElementById('pin-err').textContent='❌ Incorrect PIN';
+    document.getElementById('pin-in').value='';
+  }
+}
+
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-bg').forEach(bg=>{
+  bg.addEventListener('click',e=>{ if(e.target===bg) closeModal(bg.id); });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
+  // Expire blockades
+  const now=new Date();
+  let changed=false;
+  for(const[iso,exp] of Object.entries(S.blok)) if(new Date(exp)<now){ delete S.blok[iso]; changed=true; }
+  if(changed) saveState();
+});
+
+window.addEventListener('resize',()=>{
+  const el=document.getElementById('map-wrap');
+  if(!svg||!el) return;
+  const w=el.clientWidth, h=el.clientHeight;
+  svg.attr('viewBox',`0 0 ${w} ${h}`);
+  proj.scale(w/6.4).translate([w/2,h/1.58]);
+  path.projection(proj);
+  if(cpaths) cpaths.attr('d',path);
+});
+</script>
+<div style="display:none">© 2026 Jason Slaughter · PixelED Path, LLC · Total World Conquest: Modern Era</div>
+</body>
+</html>
