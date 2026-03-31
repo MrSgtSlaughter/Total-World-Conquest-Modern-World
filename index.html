@@ -47,6 +47,7 @@ body{background:var(--bg);color:var(--green);font-family:var(--font);overflow:hi
 
 /* ── STUDENT DASHBOARD ── */
 #student-screen .s-layout{display:grid;grid-template-columns:1fr 1fr;gap:0;height:calc(100vh - 100px);overflow:hidden}
+#student-screen .s-layout .retro-panel{overflow-y:auto}
 #student-screen .s-layout .retro-panel{overflow-y:auto;max-height:calc(100vh - 120px);margin:6px}
 .stat-line{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--border);font-size:1em}
 .stat-line:last-child{border-bottom:none}
@@ -84,6 +85,9 @@ body{background:var(--bg);color:var(--green);font-family:var(--font);overflow:hi
 .country-5th{fill:#f2c94c}
 .country-6th{fill:#2f6fed}
 .country-skipped{stroke:#ff3300!important;stroke-width:2!important;stroke-dasharray:5,3}
+.country-nuked{fill:#1a1a1a!important;stroke:#ff4400!important;stroke-width:1.5!important;opacity:0.6!important}
+.unit-sprite{height:20px;vertical-align:middle;image-rendering:pixelated;image-rendering:crisp-edges}
+.store-card-icon .unit-sprite{height:52px;display:block;margin:0 auto}
 
 /* TOOLTIP */
 #tt{position:fixed;background:var(--bg2);border:2px solid var(--yellow);color:var(--green);padding:8px 12px;font-size:.76em;pointer-events:none;z-index:500;display:none;font-family:var(--font);box-shadow:3px 3px 0 rgba(0,0,0,.5)}
@@ -106,9 +110,25 @@ body{background:var(--bg);color:var(--green);font-family:var(--font);overflow:hi
 .gold-amt{background:var(--bg);border:1px solid #ffd700;color:#ffd700;padding:2px 8px;min-width:70px;text-align:center;font-weight:700}
 
 /* SPECIAL WEAPONS */
-.weapon-card{background:var(--bg);border:2px solid #333;padding:8px;margin:4px 0;border-radius:2px}
+/* TAX MODAL */
+#tax-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.97);z-index:4000;display:none;align-items:center;justify-content:center;flex-direction:column}
+#tax-modal.open{display:flex}
+.tax-box{text-align:center;max-width:600px;padding:30px 20px}
+.tax-title{font-family:var(--font);font-size:2.4em;font-weight:700;color:var(--yellow);letter-spacing:3px;text-shadow:0 0 20px rgba(255,255,0,.4);margin-bottom:8px}
+.tax-sub{font-family:var(--font);font-size:1.1em;color:var(--green);margin-bottom:20px;letter-spacing:1px}
+.tax-jj{font-size:5em;margin:16px 0;animation:taxbounce 0.6s infinite alternate}
+.tax-count{font-family:var(--font);font-size:4em;font-weight:700;color:var(--yellow);line-height:1}
+.tax-label{font-family:var(--font);font-size:.9em;color:#888;letter-spacing:2px;margin-top:4px}
+.tax-reward{font-family:var(--font);font-size:1.3em;color:#ffd700;margin:16px 0 24px;letter-spacing:1px}
+@keyframes taxbounce{from{transform:translateY(0) scaleY(1)}to{transform:translateY(-12px) scaleY(0.92)}}
+.weapon-card{background:var(--bg);border:2px solid #333;padding:10px 12px;margin:0;border-radius:2px;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto auto;gap:2px 10px;align-items:start}
+.weapon-card+.weapon-card{border-top:none}
+.weapon-card:hover{border-color:#555}
 .weapon-card.active{border-color:var(--yellow);box-shadow:0 0 8px rgba(255,255,0,.3)}
-.weapon-name{font-size:.82em;font-weight:700;color:var(--yellow)}
+.wc-sprite{grid-row:1/3;align-self:center;width:48px;text-align:center}
+.wc-sprite .unit-sprite{height:36px!important;display:block;margin:0 auto}
+.wc-info{grid-column:2}
+.weapon-name{font-size:.82em;font-weight:700;color:var(--yellow);display:flex;align-items:center;gap:6px}
 .weapon-effect{font-size:.7em;color:#aaa;margin:2px 0}
 .weapon-cost{font-size:.75em;color:#ffd700}
 
@@ -122,9 +142,9 @@ body{background:var(--bg);color:var(--green);font-family:var(--font);overflow:hi
 .pin-err{color:#cc0000;font-size:.8em;min-height:18px;margin-top:4px;text-align:center}
 
 /* CUTSCENE OVERLAY */
-#cutscene{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:3000;display:none;align-items:center;justify-content:center;flex-direction:column}
+#cutscene{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.96);z-index:3000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px}
 #cutscene.open{display:flex}
-#cutscene video{max-width:90%;max-height:80vh;border:4px solid var(--yellow)}
+#cutscene video{width:min(95vw,1200px);max-height:90vh;border:4px solid var(--yellow);box-shadow:0 0 60px rgba(255,255,0,0.4)}
 #cutscene .cs-skip{margin-top:16px;color:var(--yellow);font-size:.9em;cursor:pointer;border:1px dashed var(--yellow);padding:6px 16px;font-family:var(--font)}
 #cutscene .cs-label{color:var(--yellow);font-size:1.3em;font-weight:700;letter-spacing:2px;margin-bottom:12px}
 
@@ -141,6 +161,42 @@ body{background:var(--bg);color:var(--green);font-family:var(--font);overflow:hi
   #t-sidebar{width:240px}
 }
 
+.inv-manager-table{width:100%;border-collapse:collapse;font-size:.75em;margin-bottom:10px}
+.inv-manager-table th{background:var(--yellow);color:var(--bg);padding:4px 6px;text-align:left;font-size:.72em}
+.inv-manager-table td{padding:3px 4px;border-bottom:1px dashed #1a3a1a;vertical-align:middle}
+.inv-manager-table tr:hover td{background:rgba(0,255,0,.05)}
+.inv-qty{color:var(--yellow);font-weight:700;text-align:center;min-width:28px;display:inline-block}
+.inv-cls-header{color:var(--yellow);font-weight:700;font-size:.8em;padding:6px 0 3px;border-bottom:1px solid var(--border);margin-top:6px}
+.pm-btn{background:var(--bg);border:1px solid var(--border);color:var(--green);width:22px;height:22px;font-size:1em;cursor:pointer;line-height:1;padding:0;font-family:var(--font);display:inline-flex;align-items:center;justify-content:center}
+.pm-btn:hover{background:var(--yellow);color:var(--bg);border-color:var(--yellow)}
+/* COUNTRY LIST MODAL */
+#country-list-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.88);z-index:2000;display:none;align-items:center;justify-content:center}
+#country-list-modal.open{display:flex}
+.cl-box{background:var(--bg2);border:3px solid var(--yellow);padding:0;width:min(95vw,900px);max-height:90vh;display:flex;flex-direction:column;box-shadow:10px 10px 0 rgba(0,0,0,.7);font-family:var(--font)}
+.cl-header{background:var(--yellow);color:var(--bg);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.cl-header h2{font-size:1.1em;margin:0;letter-spacing:1px}
+.cl-search{background:var(--bg);border:2px solid var(--green);color:var(--green);padding:6px 12px;font-family:var(--font);font-size:.9em;width:200px}
+.cl-search::placeholder{color:#444}
+.cl-body{overflow-y:auto;padding:12px;flex:1}
+.cl-region{margin-bottom:14px}
+.cl-region-title{color:var(--yellow);font-size:.82em;font-weight:700;letter-spacing:2px;text-transform:uppercase;border-bottom:1px dashed var(--border);padding-bottom:4px;margin-bottom:6px}
+.cl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px}
+.cl-item{display:flex;align-items:center;gap:8px;padding:5px 8px;border:1px solid #1a3a1a;font-size:.78em;cursor:default}
+.cl-item:hover{background:rgba(0,255,0,.07);border-color:var(--green)}
+.cl-item.owned-1st{border-left:3px solid #d94141}
+.cl-item.owned-2nd{border-left:3px solid #2ea44f}
+.cl-item.owned-5th{border-left:3px solid #f2c94c}
+.cl-item.owned-6th{border-left:3px solid #2f6fed}
+.cl-item.nuked{opacity:.45;text-decoration:line-through}
+.cl-code{background:var(--bg);border:1px solid #2a4a2a;color:var(--yellow);padding:1px 5px;font-size:.85em;font-weight:700;min-width:28px;text-align:center;flex-shrink:0}
+.cl-pts{color:#888;font-size:.75em;margin-left:auto;flex-shrink:0}
+.cl-owner-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cl-footer{background:#0a0e1a;padding:8px 16px;display:flex;gap:16px;flex-wrap:wrap;flex-shrink:0;border-top:1px solid var(--border);font-size:.75em}
+.cl-legend{display:flex;align-items:center;gap:5px}
+/* ── BLOCKADE COUNTDOWN ── */
+#blockade-ticker{position:absolute;top:6px;left:50%;transform:translateX(-50%);display:flex;gap:6px;flex-wrap:wrap;justify-content:center;z-index:10;pointer-events:none;max-width:95%}
+.blok-chip{background:rgba(0,0,0,.82);border:1px solid #ff6b00;color:#ff9933;font-family:var(--font);font-size:.68em;padding:3px 9px;white-space:nowrap;pointer-events:none}
+.blok-chip strong{color:#ffcc00}
 /* BATTLE RESULT DISPLAY */
 .battle-result-box{background:var(--bg);border:3px solid var(--yellow);padding:14px;margin:8px 0;text-align:center}
 .battle-result-box.win{border-color:#00ff00;color:#00ff00}
@@ -173,7 +229,58 @@ body{background:var(--bg);color:var(--green);font-family:var(--font);overflow:hi
 .country{fill-opacity:1.0}
 .country-unclaimed{fill:#b8c9c9;stroke:#6a8a8a;stroke-width:0.6}
 #map-country-info { z-index: 10; }
+/* Mini-map colors */
+.mini-country{stroke:#0d1224;stroke-width:.3}
+.mini-unclaimed{fill:#2a3a4a}
+.mini-1st{fill:#d94141}
+.mini-2nd{fill:#2ea44f}
+.mini-5th{fill:#f2c94c}
+.mini-6th{fill:#2f6fed}
+.mini-nuked{fill:#1a1a1a;opacity:0.5}
 
+
+/* ── STORE SCREEN ── */
+#store-screen .store-header{background:var(--yellow);color:var(--bg);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+#store-screen .store-header h1{font-size:1.3em;letter-spacing:2px}
+.store-body{padding:12px;max-width:900px;margin:0 auto}
+.store-gold-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.store-gold-pill{background:var(--bg2);border:2px solid;padding:6px 14px;font-size:.9em;font-weight:700;border-radius:2px}
+.store-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:10px}
+.store-card{background:var(--bg2);border:2px solid #1a3a1a;padding:14px;display:flex;flex-direction:column;gap:6px;transition:border-color .2s}
+.store-card:hover{border-color:var(--yellow)}
+.store-card-icon{font-size:2.2em;text-align:center}
+.store-card-name{font-size:.9em;font-weight:700;color:var(--yellow);text-align:center}
+.store-card-effect{font-size:.72em;color:#aaa;text-align:center;min-height:32px;line-height:1.4}
+.store-card-cost{font-size:1.1em;font-weight:700;color:#ffd700;text-align:center}
+.store-card-stack{font-size:.65em;color:#555;text-align:center}
+.store-buy-row{display:flex;gap:6px;margin-top:4px}
+.store-buy-btn{flex:1;background:var(--yellow);color:var(--bg);border:2px solid var(--green);padding:6px;font-family:var(--font);font-size:.78em;font-weight:700;cursor:pointer;transition:all .15s}
+.store-buy-btn:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:3px 3px 0 rgba(0,0,0,.5)}
+.store-buy-btn:disabled{opacity:.35;cursor:not-allowed}
+.store-class-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.store-tab{background:var(--bg);border:2px solid #1a3a1a;color:#555;padding:6px 14px;font-family:var(--font);font-size:.85em;font-weight:700;cursor:pointer;transition:all .2s}
+.store-tab.active{color:var(--bg);border-color:var(--yellow)}
+.store-inv-preview{background:var(--bg);border:1px dashed var(--border);padding:8px 12px;font-size:.78em;margin-bottom:10px;min-height:32px}
+.store-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--yellow);color:var(--bg);padding:10px 24px;font-family:var(--font);font-weight:700;font-size:.9em;z-index:3000;display:none;box-shadow:4px 4px 0 rgba(0,0,0,.5);border:2px solid var(--green)}
+
+/* ── FAQ ── */
+#faq-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);z-index:2000;display:none;align-items:center;justify-content:center}
+#faq-modal.open{display:flex}
+.faq-box{background:var(--bg2);border:3px solid #c084fc;width:min(96vw,780px);max-height:92vh;display:flex;flex-direction:column;box-shadow:10px 10px 0 rgba(0,0,0,.7);font-family:var(--font)}
+.faq-header{background:#c084fc;color:var(--bg);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.faq-header h2{font-size:1.1em;margin:0;letter-spacing:1px}
+.faq-tabs{display:flex;flex-wrap:wrap;gap:4px;padding:10px 12px;border-bottom:1px solid #2a2a4a;flex-shrink:0;background:#0a0e1a}
+.faq-tab{background:var(--bg);border:1px solid #2a2a4a;color:#888;padding:4px 10px;font-family:var(--font);font-size:.72em;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap}
+.faq-tab:hover{border-color:#c084fc;color:#c084fc}
+.faq-tab.active{background:#c084fc;color:var(--bg);border-color:#c084fc}
+.faq-content{flex:1;overflow-y:auto;padding:10px 14px}
+.faq-item{border-bottom:1px dashed #1a2a1a;margin-bottom:4px}
+.faq-q{display:flex;align-items:flex-start;gap:10px;padding:10px 4px;cursor:pointer;font-size:.85em;font-weight:700;color:var(--green);line-height:1.4;user-select:none}
+.faq-q:hover{color:var(--yellow)}
+.faq-arrow{color:#555;font-size:.8em;flex-shrink:0;margin-top:2px;transition:color .2s}
+.faq-a{display:none;padding:6px 14px 12px 24px;font-size:.8em;color:#bbb;line-height:1.7;border-left:2px solid #1a3a1a;margin-left:10px;margin-bottom:4px}
+.faq-a.open{display:block}
+.faq-footer{padding:8px 14px;border-top:1px solid #1a2a1a;font-size:.68em;color:#555;flex-shrink:0;text-align:center}
 </style>
 </head>
 <body>
@@ -223,21 +330,51 @@ body{background:var(--bg);color:var(--green);font-family:var(--font);overflow:hi
     <div class="retro-panel">
       <h2>📊 EMPIRE STATUS</h2>
       <div id="s-stats"></div>
-      <h2 style="margin-top:14px">🎖️ CLASS INVENTORY</h2>
-      <div id="s-inventory" class="inv-grid"></div>
       <h2 style="margin-top:14px">🏛️ GOVERNMENT</h2>
-      <div id="s-govt" style="font-size:.9em;padding:6px 0"></div>
+      <div id="s-govt" style="font-size:.9em;padding:4px 0 8px"></div>
+      <h2 style="margin-top:6px">🎖️ CLASS INVENTORY</h2>
+      <div id="s-inventory"></div>
     </div>
     <!-- RIGHT: Leaderboard + News -->
     <div class="retro-panel">
       <h2>🏆 LEADERBOARD</h2>
       <table class="lb-table" id="s-leaderboard"></table>
+      <h2>🗺️ LIVE MAP</h2>
+      <div id="mini-map-wrap" style="position:relative;width:100%;height:420px;background:#1a3a5a;border:2px solid #00ff00;overflow:hidden;margin:8px 0">
+        <svg id="mini-map-svg" style="width:100%;height:100%;display:block"></svg>
+        <button id="mini-refresh" onclick="refreshMiniMap()">↻ REFRESH</button>
+        <div id="mini-last-update">Loading...</div>
+      </div>
       <h2 style="margin-top:14px">📋 BATTLE LOG</h2>
       <div id="s-log" style="font-size:.78em;max-height:200px;overflow-y:auto;background:var(--bg);padding:8px;border:1px dashed var(--border)"></div>
-      <button class="retro-btn secondary" style="margin-top:10px;width:100%" onclick="goLogin()">← BACK</button>
+      <button class="retro-btn" style="margin-top:6px;width:100%;background:#1a3a1a;color:var(--green);border-color:var(--green)" onclick="openCountryList()">🌍 VIEW ALL COUNTRIES &amp; CODES</button>
+      <button class="retro-btn" style="margin-top:6px;width:100%;background:#1a0a2a;color:#c084fc;border-color:#c084fc" onclick="openFAQ()">❓ GAME HELP &amp; FAQ</button>
+      <button class="retro-btn secondary" style="margin-top:6px;width:100%" onclick="goLogin()">← BACK</button>
     </div>
   </div>
 </div>
+
+<!-- ══════════════════ STORE ══════════════════ -->
+<div id="store-screen" class="screen">
+  <div class="store-header">
+    <h1>🛒 TWC STORE</h1>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span id="store-period-label" style="font-size:.85em;font-weight:700"></span>
+      <button class="retro-btn sm secondary" onclick="goStudentFromStore()">← BACK TO DASHBOARD</button>
+    </div>
+  </div>
+  <div class="store-body">
+    <!-- Gold bar for all classes -->
+    <div class="store-gold-bar" id="store-gold-bar"></div>
+    <!-- Class tabs -->
+    <div class="store-class-tabs" id="store-tabs"></div>
+    <!-- Current inventory preview -->
+    <div class="store-inv-preview" id="store-inv-preview"></div>
+    <!-- Item grid -->
+    <div class="store-grid" id="store-grid"></div>
+  </div>
+</div>
+<div class="store-toast" id="store-toast"></div>
 
 <!-- ══════════════════ TEACHER ══════════════════ -->
 <div id="teacher-screen" class="screen">
@@ -252,6 +389,7 @@ body{background:var(--bg);color:var(--green);font-family:var(--font);overflow:hi
     <!-- MAP -->
     <div id="map-wrap">
       <img id="map-bg-video" src="water.gif" alt="">
+    <div id="blockade-ticker"></div>
     <svg id="map-svg"></svg>
       <!-- Country info tooltip overlay -->
       <div id="map-country-info" style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:var(--bg2);border:2px solid var(--yellow);padding:10px 20px;font-family:var(--font);color:var(--green);font-size:.82em;display:none;min-width:280px;text-align:center;box-shadow:4px 4px 0 rgba(0,0,0,.5)"></div>
@@ -279,35 +417,17 @@ body{background:var(--bg);color:var(--green);font-family:var(--font);overflow:hi
             <option value="6th">6th (Blue)</option>
           </select>
           <button class="retro-btn sm" onclick="claimTerritory()">✓ SET</button>
+          <button class="retro-btn sm secondary" onclick="openCountryList()" title="Browse all country codes">🌍</button>
         </div>
+        <label class="ctrl-label" style="margin-top:8px">Lift blockade on territory</label>
+        <div class="ctrl-row">
+          <input class="ctrl-input" id="lift-iso" placeholder="ISO code" maxlength="3" style="text-transform:uppercase;width:80px"/>
+          <button class="retro-btn sm danger" onclick="liftBlockade()">🚧 LIFT</button>
+        </div>
+        <div id="blockade-list" style="margin-top:6px;font-size:.72em;color:#888"></div>
       </div>
 
-      <!-- BATTLE -->
-      <div class="retro-panel">
-        <h2>⚔️ BATTLE RESULT</h2>
-        <label class="ctrl-label">Attacker → Defender</label>
-        <div class="ctrl-row">
-          <select class="ctrl-select" id="b-atk">
-            <option value="1st">1st attacks</option>
-            <option value="2nd">2nd attacks</option>
-            <option value="5th">5th attacks</option>
-            <option value="6th">6th attacks</option>
-          </select>
-          <select class="ctrl-select" id="b-def">
-            <option value="2nd">→ 2nd</option>
-            <option value="1st">→ 1st</option>
-            <option value="5th">→ 5th</option>
-            <option value="6th">→ 6th</option>
-          </select>
-        </div>
-        <label class="ctrl-label" style="margin-top:6px">Territory (ISO code)</label>
-        <div class="ctrl-row">
-          <input class="ctrl-input" id="b-iso" placeholder="e.g. DE" maxlength="3" style="text-transform:uppercase"/>
-          <input class="ctrl-input" id="b-atk-roll" placeholder="Atk roll" type="number" min="1" max="30" style="width:80px"/>
-          <input class="ctrl-input" id="b-def-roll" placeholder="Def roll" type="number" min="1" max="30" style="width:80px"/>
-        </div>
-        <button class="retro-btn" style="width:100%;margin-top:4px;background:#cc0000;color:#fff;border-color:#fff" onclick="resolveBattle()">⚔️ RESOLVE BATTLE</button>
-      </div>
+
 
       <!-- GOVERNMENT -->
       <div class="retro-panel">
@@ -324,20 +444,6 @@ body{background:var(--bg);color:var(--green);font-family:var(--font);overflow:hi
       <!-- SPECIAL WEAPONS -->
       <div class="retro-panel">
         <h2>☢️ SPECIAL WEAPONS</h2>
-        <label class="ctrl-label">Deploy for class:</label>
-        <select class="ctrl-select" id="w-class" style="width:100%;margin-bottom:8px">
-          <option value="1st">1st Hour (Red)</option>
-          <option value="2nd">2nd Hour (Green)</option>
-          <option value="5th">5th Hour (Yellow)</option>
-          <option value="6th">6th Hour (Blue)</option>
-        </select>
-        <label class="ctrl-label">Target class (for Civil Unrest):</label>
-        <select class="ctrl-select" id="w-target" style="width:100%;margin-bottom:8px">
-          <option value="1st">1st Hour (Red)</option>
-          <option value="2nd">2nd Hour (Green)</option>
-          <option value="5th">5th Hour (Yellow)</option>
-          <option value="6th">6th Hour (Blue)</option>
-        </select>
         <div id="weapon-cards"></div>
       </div>
 
@@ -359,13 +465,25 @@ body{background:var(--bg);color:var(--green);font-family:var(--font);overflow:hi
             <option value="SUBMARINE">🤿 Submarine $400</option>
             <option value="BLOCKADE">🚧 Blockade $300</option>
             <option value="CYBER_ATTACK">💻 Cyber $450</option>
-            <option value="NUCLEAR_WARHEAD">☢️ Nuke $1000</option>
+            <option value="NUCLEAR_WARHEAD">☢️ Nuke $2000</option>
             <option value="ICBM">🚀 ICBM $800</option>
-            <option value="BOMBER_STRIKE">💣 Bomber Strike $600</option>
             <option value="CIVIL_UNREST">👥 Civil Unrest $700</option>
           </select>
           <button class="retro-btn sm" onclick="buyUnit()">BUY</button>
         </div>
+        <button class="retro-btn" style="width:100%;margin-top:8px;background:#1a1a00;color:var(--yellow);border-color:var(--yellow)" onclick="goStore()">🛒 OPEN FULL STORE</button>
+      </div>
+
+      <!-- INVENTORY DISPLAY -->
+      <div class="retro-panel">
+        <h2>🎖️ ALL CLASS INVENTORIES</h2>
+        <div id="inv-display"></div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="retro-panel">
+        <h2 style="color:#c084fc;border-color:#2a2a4a">❓ GAME HELP</h2>
+        <button class="retro-btn sm" style="width:100%;background:#1a0a2a;color:#c084fc;border-color:#c084fc" onclick="openFAQ()">VIEW FAQ</button>
       </div>
 
       <!-- SAVE / EXPORT -->
@@ -433,17 +551,16 @@ const GOVTS = {
 };
 
 const UNITS = {
-  'AIRBORNE_RANGER':  { name:'Airborne Ranger',  icon:'🪂', cost:100,  effect:'+1 attack roll',              stack:true,  max:null },
-  'TANK':             { name:'Tank',             icon:'🚗', cost:200,  effect:'+2 attack roll (max 3)',       stack:true,  max:3    },
-  'BOMBER':           { name:'Bomber',           icon:'✈️', cost:350,  effect:'Attack 2 territories, -2 each',stack:false, max:1    },
-  'AIRCRAFT_CARRIER': { name:'Aircraft Carrier', icon:'🚢', cost:500,  effect:'Cross-continent attack',       stack:false, max:1    },
-  'SUBMARINE':        { name:'Submarine',        icon:'🤿', cost:400,  effect:'Roll twice, take best',        stack:false, max:1    },
-  'BLOCKADE':         { name:'Blockade',         icon:'🚧', cost:300,  effect:'Block 1 incoming attack',      stack:false, max:1    },
-  'CYBER_ATTACK':     { name:'Cyber Attack',     icon:'💻', cost:450,  effect:"Remove enemy defense bonus",   stack:false, max:1    },
-  'NUCLEAR_WARHEAD':  { name:'Nuclear Warhead',  icon:'☢️', cost:1000, effect:'Auto-capture any territory',   stack:false, max:1, special:'nuke'   },
-  'ICBM':             { name:'ICBM',             icon:'🚀', cost:800,  effect:'+5 bonus to cross-cont. attack',stack:false,max:1, special:'icbm'   },
-  'BOMBER_STRIKE':    { name:'Bomber Strike',    icon:'💣', cost:600,  effect:'Force enemy to lose 1 territory',stack:false,max:1,special:'bomber' },
-  'CIVIL_UNREST':     { name:'Civil Unrest',     icon:'👥', cost:700,  effect:'Target class loses 2 turns',   stack:false, max:1, special:'unrest' },
+  'AIRBORNE_RANGER':  { name:'Airborne Ranger',  icon:'<img src="ranger.png" class="unit-sprite" alt="Ranger">',           cost:100,  effect:'+1 attack roll',              stack:true,  max:null },
+  'TANK':             { name:'Tank',             icon:'<img src="tank.png" class="unit-sprite" alt="Tank">',             cost:200,  effect:'+2 attack roll (max 3)',       stack:true,  max:3    },
+  'BOMBER':           { name:'Bomber',           icon:'<img src="bomber.png" class="unit-sprite" alt="Bomber">',           cost:350,  effect:'Force enemy to lose 1 territory — goes unclaimed (70% success)', stack:false, max:1, special:'bomber'  },
+  'AIRCRAFT_CARRIER': { name:'Aircraft Carrier', icon:'<img src="aircraftcarrier.png" class="unit-sprite" alt="Carrier">', cost:500,  effect:'Attack any country without needing to border it (70% success)',   stack:false, max:1, special:'carrier' },
+  'SUBMARINE':        { name:'Submarine',        icon:'<img src="submarine.png" class="unit-sprite" alt="Submarine">', cost:400,  effect:'Roll attack dice twice, take the better result (75% success)',      stack:false, max:1, special:'sub'     },
+  'BLOCKADE':         { name:'Blockade',         icon:'<img src="blockade.png" class="unit-sprite" alt="Blockade">',   cost:300,  effect:'Target class cannot attack today (60% success)',                    stack:false, max:1, special:'blockade'},
+  'CYBER_ATTACK':     { name:'Cyber Attack',     icon:'<img src="cybarattack.png" class="unit-sprite" alt="Cyber">',   cost:450,  effect:'Steal up to $800 from enemy treasury (50% success)',               stack:false, max:1, special:'cyber'   },
+  'NUCLEAR_WARHEAD':  { name:'Nuclear Warhead',  icon:'<img src="nuke.png" class="unit-sprite" alt="Nuke">',               cost:2000, effect:'DESTROYS territory forever + wipes all enemy inventory (40% success)', stack:false, max:1, special:'nuke'   },
+  'ICBM':             { name:'ICBM',             icon:'<img src="ICBM.png" class="unit-sprite" alt="ICBM">',               cost:800,  effect:'+5 bonus to cross-cont. attack',stack:false,max:1, special:'icbm'   },
+  'CIVIL_UNREST':     { name:'Civil Unrest',     icon:'<img src="civilunrest.png" class="unit-sprite" alt="Civil Unrest">',cost:700,  effect:'Target class loses 2 turns',   stack:false, max:1, special:'unrest' },
 };
 
 // 5 Themes: [Location, Place, H-E Interaction, Movement, Region]
@@ -480,7 +597,8 @@ const CV = {
   'MN':[2,3,1,1,1],'GT':[3,2,3,2,1],'BZ':[3,2,3,2,1],'HN':[3,2,3,2,1],'SV':[3,2,3,2,1],
   'NI':[3,2,3,2,1],'CR':[3,2,4,3,2],'CU':[3,2,3,3,2],'HT':[3,1,2,2,1],'DO':[3,2,3,3,2],
   'JM':[3,2,3,3,2],'YE':[3,3,1,2,1],'PS':[3,1,2,2,1],'TL':[3,3,2,2,1],'BN':[4,4,1,4,2],
-  'PG':[3,4,3,2,1],'FJ':[3,2,3,3,1],'GM':[2,1,2,2,1],'BH':[4,4,1,4,2]
+  'PG':[3,4,3,2,1],'FJ':[3,2,3,3,1],'GM':[2,1,2,2,1],'BH':[4,4,1,4,2],
+  'GL':[5,5,2,4,4]
 };
 
 const N2A2 = {
@@ -499,7 +617,7 @@ const N2A2 = {
   704:'VN',706:'SO',710:'ZA',716:'ZW',724:'ES',729:'SD',740:'SR',748:'SZ',752:'SE',
   756:'CH',760:'SY',762:'TJ',764:'TH',768:'TG',788:'TN',792:'TR',795:'TM',800:'UG',
   804:'UA',784:'AE',807:'MK',818:'EG',826:'GB',840:'US',858:'UY',860:'UZ',862:'VE',
-  887:'YE',894:'ZM',31:'AZ',51:'AM',96:'BN',112:'BY',275:'PS',203:'CZ',231:'ET',270:'GM',
+  887:'YE',894:'ZM',31:'AZ',51:'AM',304:'GL',96:'BN',112:'BY',275:'PS',203:'CZ',231:'ET',270:'GM',
   324:'GN',748:'SZ',792:'TR',832:'JE',833:'IM',336:'VA',438:'LI',442:'LU',470:'MT',
   492:'MC',674:'SM',352:'IS',191:'HR',688:'RS',760:'SY',232:'ER',706:'SO',706:'SO'
 };
@@ -532,7 +650,7 @@ const NAMES = {
   'UA':'Ukraine','AE':'UAE','GB':'United Kingdom','US':'United States','UY':'Uruguay',
   'UZ':'Uzbekistan','VE':'Venezuela','VN':'Vietnam','YE':'Yemen','ZM':'Zambia','ZW':'Zimbabwe',
   'GY':'Guyana','ME':'Montenegro','AM':'Armenia','BY':'Belarus','CZ':'Czechia','FJ':'Fiji',
-  'PS':'Palestine','BH':'Bahrain','AZ':'Azerbaijan','CU':'Cuba','DO':'Dominican Rep.','LV':'Latvia',
+  'PS':'Palestine','BH':'Bahrain','GL':'Greenland','AZ':'Azerbaijan','CU':'Cuba','DO':'Dominican Rep.','LV':'Latvia',
   'LT':'Lithuania','EE':'Estonia','BN':'Brunei','TT':'Trinidad & Tobago','JM':'Jamaica',
   'BZ':'Belize','GT':'Guatemala','HN':'Honduras','SV':'El Salvador','NI':'Nicaragua','CR':'Costa Rica',
   'EC':'Ecuador','BO':'Bolivia','PY':'Paraguay','UY':'Uruguay','GY':'Guyana','SR':'Suriname',
@@ -548,22 +666,36 @@ const NAMES = {
 function cval(iso){ const v=CV[iso]; return v?v.reduce((a,b)=>a+b,0):5; }
 function cname(iso){ return NAMES[iso]||iso; }
 
-// ── VIDEO PATHS (update when you have your videos) ──
+// ── VIDEO PATHS — exact filenames ──
 const VIDEOS = {
-  icbm:    'videos/icbm.mp4',
-  nuke:    'videos/nuke.mp4',
-  bomber:  'videos/bomber.mp4',
-  unrest:  'videos/civilunrest.mp4',
-  battle:  'videos/battle.mp4',
-  win:     'videos/win.mp4',
-  lose:    'videos/lose.mp4',
+  icbm_success:     'ICBMsuccess.mp4',
+  icbm_fail:        'ICBMfailed.mp4',
+  nuke_success:     'nukesuccess.mp4',
+  nuke_fail:        'nukefailed.mp4',
+  bomber_success:   'bombsuccess.mp4',
+  bomber_fail:      'bombfail.mp4',
+  unrest_success:   'civilunrestsuccess.mp4',
+  unrest_fail:      'civilunrestfailed.mp4',
+  blockade_success: 'blockadesuccessul.mp4',
+  blockade_fail:    'blockadeunsuccessul.mp4',
+  cyber_success:    'cybersuccess.mp4',
+  cyber_fail:       'cyberfail.mp4',
+  carrier_success:  'carriersuccess.mp4',
+  carrier_fail:     'carrierunsuccessful.mp4',
+  sub_success:      'subsuccess.mp4',
+  sub_fail:         'subfail.mp4',
+  ranger_success:   'rangerssuccess.mp4',
+  ranger_fail:      'rangerfail.mp4',
+  tank_success:     'tanksuccess.mp4',
+  tank_fail:        'tankfail.mp4',
+  tax:              'taxes.mp4',
 };
 </script>
 <script>
 // ═══════════════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════════════
-const SK = { OWN:'TWC2_OWN', GOLD:'TWC2_GOLD', INV:'TWC2_INV', GOVT:'TWC2_GOVT', BLOK:'TWC2_BLOK', SKIP:'TWC2_SKIP', LOG:'TWC2_LOG' };
+const SK = { OWN:'TWC2_OWN', GOLD:'TWC2_GOLD', INV:'TWC2_INV', GOVT:'TWC2_GOVT', BLOK:'TWC2_BLOK', SKIP:'TWC2_SKIP', LOG:'TWC2_LOG', NUKED:'TWC2_NUKED', ICBM_BONUS:'TWC2_ICBM', TAX:'TWC2_TAX' };
 
 function loadState(){
   const s={};
@@ -572,9 +704,12 @@ function loadState(){
   s.inv   = JSON.parse(localStorage.getItem(SK.INV) ||'{"1st":{},"2nd":{},"5th":{},"6th":{}}');
   s.govt  = JSON.parse(localStorage.getItem(SK.GOVT)||'{"1st":null,"2nd":null,"5th":null,"6th":null}');
   s.blok  = JSON.parse(localStorage.getItem(SK.BLOK)||'{}');       // iso→expiry ISO string
-  s.skip  = JSON.parse(localStorage.getItem(SK.SKIP)||'{"1st":0,"2nd":0,"5th":0,"6th":0}'); // turns to skip
+  s.skip  = JSON.parse(localStorage.getItem(SK.SKIP)||'{"1st":0,"2nd":0,"5th":0,"6th":0}');
+  s.nuked = JSON.parse(localStorage.getItem(SK.NUKED)||'[]');   // permanently destroyed ISO codes
+  s.icbm  = JSON.parse(localStorage.getItem(SK.ICBM_BONUS)||'{"1st":0,"2nd":0,"5th":0,"6th":0}'); // pending +5 bonus
   s.log   = JSON.parse(localStorage.getItem(SK.LOG) ||'[]');
-  for(const c of ['1st','2nd','5th','6th']){ if(!s.inv[c])s.inv[c]={}; if(!s.gold[c])s.gold[c]=0; if(!s.skip[c])s.skip[c]=0; }
+  s.tax   = JSON.parse(localStorage.getItem(SK.TAX)  ||'{}');  // {cls: {date:'YYYY-MM-DD', count:N}}
+  for(const c of ['1st','2nd','5th','6th']){ if(!s.inv[c])s.inv[c]={}; if(!s.gold[c])s.gold[c]=0; if(!s.skip[c])s.skip[c]=0; if(!s.tax[c])s.tax[c]={}; }
   return s;
 }
 function saveState(){
@@ -583,8 +718,11 @@ function saveState(){
   localStorage.setItem(SK.INV,  JSON.stringify(S.inv));
   localStorage.setItem(SK.GOVT, JSON.stringify(S.govt));
   localStorage.setItem(SK.BLOK, JSON.stringify(S.blok));
-  localStorage.setItem(SK.SKIP, JSON.stringify(S.skip));
-  localStorage.setItem(SK.LOG,  JSON.stringify(S.log.slice(-50))); // keep last 50 entries
+  localStorage.setItem(SK.SKIP,       JSON.stringify(S.skip));
+  localStorage.setItem(SK.NUKED,      JSON.stringify(S.nuked));
+  localStorage.setItem(SK.ICBM_BONUS, JSON.stringify(S.icbm));
+  localStorage.setItem(SK.LOG,        JSON.stringify(S.log.slice(-50))); // keep last 50 entries
+  localStorage.setItem(SK.TAX,        JSON.stringify(S.tax));
 }
 
 let S = loadState();
@@ -615,7 +753,10 @@ async function initMap(){
   path=d3.geoPath().projection(proj);
   // ocean bg is handled by video
   let world;
-  try{ world=await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'); }
+  try{
+    world = miniWorldCache || await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+    miniWorldCache = world; // cache for mini map reuse
+  }
   catch(e){ el.innerHTML='<div style="color:#ff3333;padding:30px;text-align:center;font-family:monospace">⚠️ Map failed to load — check internet</div>'; return; }
   const countries=topojson.feature(world,world.objects.countries);
   cpaths=svg.selectAll('.country').data(countries.features).join('path')
@@ -628,6 +769,7 @@ async function initMap(){
 }
 
 function mapCls(iso){
+  if(iso&&S.nuked&&S.nuked.includes(iso)) return 'country country-nuked';
   const owner=iso?S.own[iso]:null;
   let c='country '+(owner?CLS[owner].mapCls:'country-unclaimed');
   if(iso&&S.blok[iso]&&new Date()<new Date(S.blok[iso])) c+=' country-skipped';
@@ -661,7 +803,6 @@ function mapClick(event,d){
     <div style="margin-top:4px;color:#ffff00;font-weight:700">🌐 Total: ${v.reduce((a,b)=>a+b,0)} pts</div>`;
   // Auto-fill ctrl inputs
   document.getElementById('ctrl-iso').value=iso;
-  document.getElementById('b-iso').value=iso;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -678,14 +819,16 @@ function renderLB(){
   rows.forEach((r,i)=>{
     const cl=CLS[r.c], g=S.govt[r.c], sk=S.skip[r.c]||0;
     th+=`<div class="lb-row">
-      <span>${emojis[i]}</span>
-      <div class="lb-dot" style="background:${cl.color}"></div>
-      <div>
-        <div style="font-weight:700;color:${cl.color}">${cl.name}</div>
-        <div style="font-size:.7em;color:#888">${r.t} territories${sk>0?`<span class="skip-badge">⏸ SKIP ${sk}</span>`:''}</div>
-        ${g?`<span class="govt-badge">${GOVTS[g].icon} ${g}</span>`:''}
+      <span style="width:22px;text-align:center;flex-shrink:0">${emojis[i]}</span>
+      <div class="lb-dot" style="background:${cl.color};width:14px;height:14px;border-radius:50%;flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;color:${cl.color};white-space:nowrap">${cl.name}</div>
+        <div style="font-size:.68em;color:#888;white-space:nowrap">${r.t} terr.${sk>0?` <span class="skip-badge">⏸${sk}</span>`:''} ${g?`· ${GOVTS[g].icon}`:'·❓'}</div>
       </div>
-      <div class="lb-pts">$${(S.gold[r.c]||0).toLocaleString()}💰<br>${r.s.toLocaleString()} pts</div>
+      <div style="text-align:right;flex-shrink:0;font-size:.78em">
+        <div style="color:#ffd700;font-weight:700">$${(S.gold[r.c]||0).toLocaleString()}</div>
+        <div style="color:var(--yellow);font-weight:700;font-size:1.05em">${r.s.toLocaleString()} pts</div>
+      </div>
     </div>`;
   });
   const tlb=document.getElementById('t-lb');
@@ -726,21 +869,25 @@ function renderStudentView(period){
   `;
   document.getElementById('s-stats').innerHTML=stats;
 
-  // Inventory
+  // Inventory — read only
   const inv=S.inv[cls]||{};
-  const unitKeys=Object.keys(UNITS);
-  let invHtml='';
-  for(const k of unitKeys){
-    const qty=inv[k]||0;
-    if(qty>0) invHtml+=`<div class="inv-item"><div class="iname">${UNITS[k].icon} ${UNITS[k].name}</div><div class="iqty">×${qty}</div></div>`;
-  }
-  document.getElementById('s-inventory').innerHTML=invHtml||'<div style="color:#555;font-size:.85em;padding:8px">No units in inventory</div>';
-
-  // Govt
-  const g=S.govt[cls];
-  document.getElementById('s-govt').innerHTML=g
-    ?`<span class="govt-badge" style="font-size:.9em">${GOVTS[g].icon} ${g}</span><br><span style="color:#aaa;font-size:.8em">${GOVTS[g].desc}</span>`
+  const govt=S.govt[cls];
+  document.getElementById('s-govt').innerHTML=govt
+    ?`<span class="govt-badge" style="font-size:.9em">${GOVTS[govt].icon} ${govt}</span><br><span style="color:#aaa;font-size:.8em">${GOVTS[govt].desc}</span>`
     :'<span style="color:#555">Not yet assigned</span>';
+  let invHtml='<table style="width:100%;border-collapse:collapse;font-size:.82em">';
+  invHtml+='<tr><th style="text-align:left;padding:4px 6px;border-bottom:1px solid var(--border);color:var(--yellow)">UNIT</th><th style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--yellow);text-align:right">QTY</th></tr>';
+  let hasAny=false;
+  for(const[k,u] of Object.entries(UNITS)){
+    const qty=inv[k]||0;
+    if(qty>0){
+      hasAny=true;
+      invHtml+=`<tr><td style="padding:5px 6px;border-bottom:1px dashed #1a3a1a">${u.icon} ${u.name}</td><td style="padding:5px 6px;border-bottom:1px dashed #1a3a1a;text-align:right;color:var(--yellow);font-weight:700">×${qty}</td></tr>`;
+    }
+  }
+  if(!hasAny) invHtml+='<tr><td colspan="2" style="padding:8px 6px;color:#555">No units in inventory</td></tr>';
+  invHtml+='</table>';
+  document.getElementById('s-inventory').innerHTML=invHtml;
 
   // Battle log
   const logEl=document.getElementById('s-log');
@@ -778,26 +925,41 @@ function renderTeacherUI(){
       <button class="retro-btn sm" onclick="addGold('${c}',50)">+50</button>
       <button class="retro-btn sm" onclick="addGold('${c}',100)">+100</button>
       <button class="retro-btn sm" onclick="addGold('${c}',200)">+200</button>
+      <button class="retro-btn sm" style="background:#1a1a00;color:#ffd700;border-color:#ffd700" onclick="openTax('${c}')">💪 TAX</button>
     </div>`;
   }
   document.getElementById('gold-rows').innerHTML=gg;
 
   // Weapon cards
-  const specials=['NUCLEAR_WARHEAD','ICBM','BOMBER_STRIKE','CIVIL_UNREST'];
+  const specials=['NUCLEAR_WARHEAD','ICBM','BOMBER','AIRCRAFT_CARRIER','SUBMARINE','CIVIL_UNREST','CYBER_ATTACK','BLOCKADE'];
+  const clsOpts=['1st','2nd','5th','6th'].map(c=>`<option value="${c}">${CLS[c].emoji} ${CLS[c].name}</option>`).join('');
   let wh='';
   for(const k of specials){
     const u=UNITS[k];
+    const needsTarget = k==='CIVIL_UNREST' || k==='CYBER_ATTACK' || k==='BOMBER' || k==='BLOCKADE';
+    const isImg = u.icon.startsWith('<img');
     wh+=`<div class="weapon-card">
-      <div class="weapon-name">${u.icon} ${u.name}</div>
-      <div class="weapon-effect">${u.effect}</div>
-      <div class="weapon-cost">Cost: $${u.cost.toLocaleString()}</div>
-      <button class="retro-btn sm danger" style="margin-top:6px;width:100%" onclick="deployWeapon('${k}')">⚡ DEPLOY</button>
+      <div class="wc-sprite">${isImg ? u.icon.replace('class="unit-sprite"','class="unit-sprite" style="height:36px"') : `<span style="font-size:1.8em;line-height:1">${u.icon}</span>`}</div>
+      <div style="grid-column:2">
+        <div class="weapon-name" style="font-size:.82em;font-weight:700;color:var(--yellow);margin-bottom:1px">${u.name}</div>
+        <div style="font-size:.68em;color:#888;margin-bottom:4px">${u.effect} &nbsp;·&nbsp; <span style="color:#ffd700">$${u.cost.toLocaleString()}</span></div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px">
+          <select class="ctrl-select" id="wc-${k}" style="flex:1;min-width:80px">${clsOpts}</select>
+          ${needsTarget?`<select class="ctrl-select" id="wt-${k}" style="flex:1;min-width:80px">${clsOpts}</select>`:''}
+        </div>
+        <button class="retro-btn sm danger" style="width:100%;padding:5px" onclick="deployWeapon('${k}')">⚡ DEPLOY</button>
+      </div>
     </div>`;
   }
   document.getElementById('weapon-cards').innerHTML=wh;
 
   renderLB();
   document.getElementById('t-date').textContent=new Date().toLocaleDateString();
+  renderInvDisplay();
+  // Show nuked territory count
+  const nukedCount=(S.nuked||[]).length;
+  const dateEl=document.getElementById('t-date');
+  dateEl.textContent=new Date().toLocaleDateString()+(nukedCount>0?` · ☢️ ${nukedCount} nuked`:'');
 }
 </script>
 <script>
@@ -808,6 +970,7 @@ function claimTerritory(){
   const iso=document.getElementById('ctrl-iso').value.trim().toUpperCase();
   const cls=document.getElementById('ctrl-class').value;
   if(!iso){ alert('Enter a country ISO code'); return; }
+  if(S.nuked&&S.nuked.includes(iso)){ alert(`☢️ ${cname(iso)} was nuked — it is permanently destroyed and cannot be claimed!`); return; }
   if(cls) S.own[iso]=cls;
   else delete S.own[iso];
   saveState(); refreshMap(); renderLB();
@@ -832,6 +995,76 @@ function addGold(cls, amount){
   addLog(`💰 ${CLS[cls].name} received +$${amount} gold`);
 }
 
+// ═══════════════════════════════════════════════════════════════
+// TAX SYSTEM — 25 jumping jacks → +$200, max 2x per class per day
+// ═══════════════════════════════════════════════════════════════
+let _taxCls = null;
+
+function openTax(cls){
+  const today = new Date().toISOString().slice(0,10);
+  const t = S.tax[cls] || {};
+  const usedToday = (t.date === today) ? (t.count || 0) : 0;
+  if(usedToday >= 2){
+    alert(`${CLS[cls].name} has already taxed their citizens twice today! Come back tomorrow.`);
+    return;
+  }
+  _taxCls = cls;
+  const cl = CLS[cls];
+  document.getElementById('tax-cls-name').textContent = cl.emoji + ' ' + cl.name.toUpperCase();
+  document.getElementById('tax-cls-name').style.color = cl.color;
+  document.getElementById('tax-reward-text').textContent = `Complete them all to earn +$200 for your empire!`;
+  document.getElementById('tax-uses-left').textContent = `Uses remaining today: ${2 - usedToday} / 2`;
+  document.getElementById('tax-modal').classList.add('open');
+}
+
+function confirmTax(){
+  if(!_taxCls) return;
+  const today = new Date().toISOString().slice(0,10);
+  const t = S.tax[_taxCls] || {};
+  const usedToday = (t.date === today) ? (t.count || 0) : 0;
+  if(usedToday >= 2){
+    alert('Already used twice today!');
+    cancelTax(); return;
+  }
+  S.gold[_taxCls] = (S.gold[_taxCls] || 0) + 200;
+  S.tax[_taxCls] = { date: today, count: usedToday + 1 };
+  saveState(); renderTeacherUI(); renderLB();
+  addLog(`💪 ${CLS[_taxCls].name} citizens did 25 jumping jacks — +$200 tax collected! (${usedToday+1}/2 today)`);
+  const taxedCls = _taxCls;
+  cancelTax();
+  playCutscene('tax');
+  setTimeout(()=>alert(`💪 TAXES COLLECTED!\n\n${CLS[taxedCls].name} earned +$200 from 25 jumping jacks.\n(${usedToday+1} of 2 uses today)`), 300);
+}
+
+function cancelTax(){
+  _taxCls = null;
+  document.getElementById('tax-modal').classList.remove('open');
+}
+
+function renderInvDisplay(){
+  // Shared render used by both teacher sidebar and student view
+  const el=document.getElementById('inv-display');
+  if(!el) return;
+  let html='';
+  for(const cls of ['1st','2nd','5th','6th']){
+    const cl=CLS[cls];
+    const inv=S.inv[cls]||{};
+    const hasAny=Object.values(inv).some(q=>q>0);
+    html+=`<div class="inv-cls-header">${cl.emoji} <span style="color:${cl.color}">${cl.name}</span></div>`;
+    if(!hasAny){
+      html+=`<div style="color:#555;font-size:.75em;padding:4px 8px 8px">No units</div>`;
+    } else {
+      html+='<div style="display:flex;flex-wrap:wrap;gap:4px;padding-bottom:8px">';
+      for(const[k,u] of Object.entries(UNITS)){
+        const qty=inv[k]||0;
+        if(qty>0) html+=`<span style="background:var(--bg);border:1px solid #1a3a1a;padding:3px 8px;font-size:.75em;color:var(--green)">${u.icon} ${u.name} <strong style="color:var(--yellow)">×${qty}</strong></span>`;
+      }
+      html+='</div>';
+    }
+  }
+  el.innerHTML=html;
+}
+
 function buyUnit(){
   const cls=document.getElementById('buy-class').value;
   const uk=document.getElementById('buy-unit').value;
@@ -843,161 +1076,327 @@ function buyUnit(){
   if(!u.stack&&cur>=1){ alert(`${CLS[cls].name} already has a ${u.name}!`); return; }
   if(u.max&&cur>=u.max){ alert(`Max ${u.max} ${u.name} reached!`); return; }
   if((S.gold[cls]||0)<cost){ alert(`Need $${cost}, only have $${S.gold[cls]||0}!`); return; }
-  S.gold[cls]-=cost;
-  inv[uk]=(inv[uk]||0)+1;
-  saveState(); renderTeacherUI();
-  addLog(`🛒 ${CLS[cls].name} purchased ${u.icon} ${u.name} (-$${cost})`);
-  alert(`✅ ${u.icon} ${u.name} added to ${CLS[cls].name}! ($${S.gold[cls]} remaining)`);
-}
 
-// ─── BATTLE RESOLUTION ───
-function resolveBattle(){
-  const atk=document.getElementById('b-atk').value;
-  const def=document.getElementById('b-def').value;
-  const iso=document.getElementById('b-iso').value.trim().toUpperCase();
-  const ar=parseInt(document.getElementById('b-atk-roll').value)||0;
-  const dr=parseInt(document.getElementById('b-def-roll').value)||0;
-  if(atk===def){ alert('Attacker and defender must be different!'); return; }
-  if(!ar||!dr){ alert('Enter both roll values!'); return; }
-
-  // Check blockade
-  if(iso&&S.blok[iso]&&new Date()<new Date(S.blok[iso])){
-    alert(`🚧 ${cname(iso)} is BLOCKADED! Attack cannot proceed.`); return;
+  // Rangers (90%) and Tanks (85%) roll for success on deployment
+  if(uk==='AIRBORNE_RANGER'){
+    const roll=roll100();
+    S.gold[cls]-=cost;
+    if(roll<=90){
+      inv[uk]=(inv[uk]||0)+1;
+      saveState(); renderTeacherUI();
+      playCutscene('ranger',true);
+      addLog(`🪂 ${CLS[cls].name} deployed Airborne Ranger — SUCCESS! +1 attack bonus. (roll: ${roll}/90)`);
+      alert(`🪂 RANGER DEPLOYED!\n\n${CLS[cls].name} gains +1 permanent attack bonus.\n$${S.gold[cls]} remaining.\n\n(Roll: ${roll} — needed ≤90)`);
+    } else {
+      saveState(); renderTeacherUI();
+      playCutscene('ranger',false);
+      addLog(`🪂 ${CLS[cls].name} Ranger deployment FAILED — unit lost. (roll: ${roll}/90)`);
+      alert(`💥 RANGER LOST!\n\nThe ranger was taken out before reaching the front. Unit consumed, no bonus.\n\n(Roll: ${roll} — needed ≤90)`);
+    }
+    return;
   }
-
-  // Check civil unrest skip
-  if(S.skip[atk]>0){
-    const proceed=confirm(`⏸ ${CLS[atk].name} is under CIVIL UNREST (${S.skip[atk]} turns remaining).\nThey lose this turn. Proceed to reduce count?`);
-    if(proceed){ S.skip[atk]--; saveState(); renderTeacherUI(); addLog(`⏸ ${CLS[atk].name} skipped turn (unrest). ${S.skip[atk]} remaining.`); }
+  if(uk==='TANK'){
+    const roll=roll100();
+    S.gold[cls]-=cost;
+    if(roll<=85){
+      inv[uk]=(inv[uk]||0)+1;
+      saveState(); renderTeacherUI();
+      playCutscene('tank',true);
+      addLog(`🚗 ${CLS[cls].name} deployed Tank — SUCCESS! +2 attack bonus. (roll: ${roll}/85)`);
+      alert(`🚗 TANK DEPLOYED!\n\n${CLS[cls].name} gains +2 permanent attack bonus (${inv[uk]} tank${inv[uk]>1?'s':''} total).\n$${S.gold[cls]} remaining.\n\n(Roll: ${roll} — needed ≤85)`);
+    } else {
+      saveState(); renderTeacherUI();
+      playCutscene('tank',false);
+      addLog(`🚗 ${CLS[cls].name} Tank deployment FAILED — unit lost. (roll: ${roll}/85)`);
+      alert(`💥 TANK DESTROYED!\n\nThe tank was hit before it reached the field. Unit consumed, no bonus.\n\n(Roll: ${roll} — needed ≤85)`);
+    }
     return;
   }
 
-  // Calculate mods
-  const atkMod=calcAtkMod(atk,def);
-  const defMod=calcDefMod(def,atk);
-  const atkTotal=ar+atkMod;
-  const defTotal=dr+defMod;
-  const atkWins=atkTotal>defTotal;
-
-  const modStr=`${CLS[atk].name}: ${ar}+${atkMod}=${atkTotal} vs ${CLS[def].name}: ${dr}+${defMod}=${defTotal}`;
-  let result='';
-
-  if(atkWins){
-    if(iso){ S.own[iso]=atk; }
-    result=`⚔️ ${CLS[atk].name} WINS! ${iso?cname(iso)+' captured!':''} (${modStr})`;
-    playCutscene('battle');
-  } else {
-    result=`🛡️ ${CLS[def].name} DEFENDS! (${modStr}) — TIE goes to defender`;
-  }
-
-  saveState(); refreshMap(); renderLB();
-  addLog(result);
-  alert(result);
-  document.getElementById('b-atk-roll').value='';
-  document.getElementById('b-def-roll').value='';
+  // All other units — standard purchase, no roll
+  S.gold[cls]-=cost;
+  inv[uk]=(inv[uk]||0)+1;
+  saveState(); renderTeacherUI();
+  addLog(`🛒 ${CLS[cls].name} purchased ${u.name} (-$${cost})`);
+  alert(`✅ ${u.name} added to ${CLS[cls].name}! ($${S.gold[cls]} remaining)`);
 }
 
-function calcAtkMod(cls,defCls){
-  const inv=S.inv[cls]||{};
-  const govt=S.govt[cls];
-  let mod=0;
-  mod+=(inv['AIRBORNE_RANGER']||0);                // +1 each
-  mod+=(Math.min(inv['TANK']||0,3))*2;              // +2 each, max 3
-  if(govt==='Totalitarianism') mod+=3;
-  return mod;
-}
-
-function calcDefMod(cls,atkCls){
-  const govt=S.govt[cls];
-  const atkInv=S.inv[atkCls]||{};
-  let mod=0;
-  if(govt==='Democracy'){
-    if((atkInv['CYBER_ATTACK']||0)>0){
-      atkInv['CYBER_ATTACK']--; // consume it
-      S.inv[atkCls]=atkInv;
-      addLog(`💻 Cyber Attack used! ${CLS[cls].name}'s Democracy bonus neutralized.`);
-    } else { mod+=1; }
-  }
-  if(govt==='Totalitarianism') mod-=1;
-  return mod;
-}
+// Battle is resolved manually with physical dice — teacher updates map directly
 
 // ─── SPECIAL WEAPONS ───
+function roll100(){ return Math.floor(Math.random()*100)+1; }
+
 function deployWeapon(uk){
-  const cls=document.getElementById('w-class').value;
-  const target=document.getElementById('w-target').value;
+  const clsEl=document.getElementById('wc-'+uk);
+  const tgtEl=document.getElementById('wt-'+uk);
+  const cls=clsEl?clsEl.value:'1st';
+  const target=tgtEl?tgtEl.value:'2nd';
   const u=UNITS[uk];
   const inv=S.inv[cls];
   if(!(inv[uk]>0)){ alert(`${CLS[cls].name} has no ${u.name}!`); return; }
 
   const special=u.special;
+  const roll=roll100();
 
   if(special==='nuke'){
-    // Check monarchy immunity
+    // Monarchy immunity
     if(S.govt[target]==='Monarchy'){
-      alert(`👑 DIVINE RIGHT! ${CLS[target].name}'s Monarchy blocks the Nuclear Warhead!`);
       inv[uk]--;
       saveState(); renderTeacherUI();
-      addLog(`☢️ ${CLS[cls].name} fired Nuclear Warhead → blocked by ${CLS[target].name}'s Divine Right!`);
+      addLog(`☢️ ${CLS[cls].name} fired Nuke → BLOCKED by ${CLS[target].name}'s Divine Right!`);
+      alert(`👑 DIVINE RIGHT! ${CLS[target].name}'s Monarchy is immune to Nuclear Warheads!`);
       return;
     }
-    const iso=prompt('Enter territory ISO code to auto-capture:','').trim().toUpperCase();
+    const iso=prompt('Enter territory ISO code to nuke:','').trim().toUpperCase();
     if(!iso) return;
-    S.own[iso]=cls;
     inv[uk]--;
-    saveState(); refreshMap(); renderLB(); renderTeacherUI();
-    addLog(`☢️ NUCLEAR STRIKE! ${CLS[cls].name} auto-captures ${cname(iso)}!`);
-    playCutscene('nuke');
-    alert(`☢️ ${cname(iso)} CAPTURED by nuclear strike!`);
+    // 40% success
+    if(roll<=40){
+      // DESTROY territory permanently
+      delete S.own[iso];
+      if(!S.nuked) S.nuked=[];
+      S.nuked.push(iso);
+      // Wipe ALL inventory of the territory's previous owner (target class)
+      S.inv[target]={};
+      saveState(); refreshMap(); renderLB(); renderTeacherUI();
+      playCutscene('nuke',true);
+      addLog(`☢️ NUCLEAR STRIKE SUCCESS! ${cname(iso)} DESTROYED FOREVER. ${CLS[target].name}'s entire inventory wiped! (roll: ${roll}/40)`);
+      alert(`☢️ NUCLEAR STRIKE!
+
+💥 ${cname(iso)} is PERMANENTLY DESTROYED — no class can ever claim it.
+💀 ${CLS[target].name}'s entire inventory has been wiped.
+
+(Roll: ${roll} — needed ≤40)`);
+    } else {
+      saveState(); renderTeacherUI();
+      playCutscene('nuke',false);
+      addLog(`☢️ NUKE INTERCEPTED! ${CLS[cls].name}'s warhead failed. (roll: ${roll}/40)`);
+      alert(`🛡️ NUCLEAR WARHEAD INTERCEPTED!
+
+${CLS[target].name}'s defense systems shot it down. Territory safe.
+
+(Roll: ${roll} — needed ≤40)`);
+    }
   }
   else if(special==='icbm'){
-    alert(`🚀 ICBM LAUNCHED by ${CLS[cls].name}! +5 bonus added to next cross-continental attack roll.`);
     inv[uk]--;
-    saveState(); renderTeacherUI();
-    addLog(`🚀 ${CLS[cls].name} launched ICBM — +5 to next cross-continental roll`);
-    playCutscene('icbm');
+    // 80% success
+    if(roll<=80){
+      if(!S.icbm) S.icbm={'1st':0,'2nd':0,'5th':0,'6th':0};
+      S.icbm[cls]=(S.icbm[cls]||0)+5;
+      saveState(); renderTeacherUI();
+      playCutscene('icbm',true);
+      addLog(`🚀 ICBM LAUNCHED! ${CLS[cls].name} gains +5 to next attack roll. (roll: ${roll}/80)`);
+      alert(`🚀 ICBM LAUNCH SUCCESS!
+
+${CLS[cls].name} gains +5 bonus on their next attack roll.
+
+(Roll: ${roll} — needed ≤80)`);
+    } else {
+      saveState(); renderTeacherUI();
+      playCutscene('icbm',false);
+      addLog(`🚀 ICBM INTERCEPTED! ${CLS[cls].name}'s missile was shot down. (roll: ${roll}/80)`);
+      alert(`🛡️ ICBM INTERCEPTED!
+
+Missile destroyed mid-flight. No bonus awarded.
+
+(Roll: ${roll} — needed ≤80)`);
+    }
   }
   else if(special==='bomber'){
-    const iso=prompt('Enter territory ISO code to force enemy to lose:','').trim().toUpperCase();
-    if(!iso) return;
-    const owner=S.own[iso];
-    if(!owner){ alert('Territory is unclaimed — no effect.'); return; }
-    delete S.own[iso];
     inv[uk]--;
-    saveState(); refreshMap(); renderLB(); renderTeacherUI();
-    addLog(`✈️ BOMBER STRIKE! ${CLS[cls].name} forces ${CLS[owner]?.name||owner} to lose ${cname(iso)}!`);
-    playCutscene('bomber');
-    alert(`✈️ Bomber Strike! ${cname(iso)} is now unclaimed!`);
+    // 70% success — enemy loses 1 random territory (goes unclaimed, up for grabs)
+    if(roll<=70){
+      const enemyTerrs=Object.entries(S.own).filter(([iso,owner])=>owner===target).map(([iso])=>iso);
+      if(enemyTerrs.length===0){
+        playCutscene('bomber',true);
+        addLog(`✈️ BOMBER STRIKE! ${CLS[target].name} has no territories to lose!`);
+        alert(`✈️ Bomber Strike! ${CLS[target].name} has no territories — nothing to unclaim.`);
+      } else {
+        const lost=enemyTerrs[Math.floor(Math.random()*enemyTerrs.length)];
+        delete S.own[lost];
+        saveState(); refreshMap(); renderLB(); renderTeacherUI();
+        playCutscene('bomber',true);
+        addLog(`✈️ BOMBER STRIKE SUCCESS! ${CLS[cls].name} forces ${CLS[target].name} to lose ${cname(lost)} [${lost}] — now unclaimed! (roll: ${roll}/70)`);
+        alert(`✈️ BOMBER STRIKE!
+
+${CLS[target].name} loses ${cname(lost)} [${lost}].
+Territory is now UNCLAIMED — anyone can grab it!
+
+(Roll: ${roll} — needed ≤70)`);
+      }
+    } else {
+      saveState(); renderTeacherUI();
+      playCutscene('bomber',false);
+      addLog(`✈️ BOMBER SHOT DOWN! ${CLS[cls].name}'s bomber was intercepted. (roll: ${roll}/70)`);
+      alert(`💥 BOMBER SHOT DOWN!
+
+${CLS[cls].name}'s bomber was intercepted. Unit lost, no effect.
+
+(Roll: ${roll} — needed ≤70)`);
+    }
   }
   else if(special==='unrest'){
-    // Check monarchy / theocracy immunity
+    // Monarchy / Theocracy immunity
     if(S.govt[target]==='Monarchy'||S.govt[target]==='Theocracy'){
       alert(`🛡️ ${CLS[target].name}'s ${S.govt[target]} blocks Civil Unrest!`);
       return;
     }
-    S.skip[target]=(S.skip[target]||0)+2;
     inv[uk]--;
-    saveState(); renderTeacherUI(); renderLB();
-    addLog(`👥 CIVIL UNREST! ${CLS[cls].name} targets ${CLS[target].name} — loses next 2 turns!`);
-    playCutscene('unrest');
-    flashUnrest();
-    alert(`👥 CIVIL UNREST! ${CLS[target].name} loses their next 2 turns!`);
+    // 55% success
+    if(roll<=55){
+      S.skip[target]=(S.skip[target]||0)+2;
+      saveState(); renderTeacherUI(); renderLB();
+      playCutscene('unrest',true);
+      flashUnrest();
+      addLog(`👥 CIVIL UNREST SUCCESS! ${CLS[cls].name} → ${CLS[target].name} loses 2 turns! (roll: ${roll}/55)`);
+      alert(`👥 CIVIL UNREST ERUPTS!
+
+${CLS[target].name} loses their next 2 turns.
+
+(Roll: ${roll} — needed ≤55)`);
+    } else {
+      saveState(); renderTeacherUI();
+      playCutscene('unrest',false);
+      addLog(`👥 CIVIL UNREST SUPPRESSED! ${CLS[target].name} held order. (roll: ${roll}/55)`);
+      alert(`🛡️ CIVIL UNREST SUPPRESSED!
+
+${CLS[target].name}'s government maintained control. No effect.
+
+(Roll: ${roll} — needed ≤55)`);
+    }
+  }
+  else if(special==='blockade'){
+    inv[uk]--;
+    // 60% success — target class loses 1 attack turn today
+    if(roll<=60){
+      S.skip[target]=(S.skip[target]||0)+1;
+      saveState(); renderTeacherUI(); renderLB();
+      playCutscene('blockade',true);
+      addLog(`🚧 BLOCKADE SUCCESS! ${CLS[cls].name} blockades ${CLS[target].name} — they lose their attack turn today! (roll: ${roll}/60)`);
+      alert(`🚧 BLOCKADE DEPLOYED!
+
+${CLS[target].name} cannot attack today — they lose 1 turn.
+
+(Roll: ${roll} — needed ≤60)`);
+    } else {
+      saveState(); renderTeacherUI();
+      playCutscene('blockade',false);
+      addLog(`🚧 BLOCKADE FAILED! ${CLS[cls].name}'s blockade was broken through. (roll: ${roll}/60)`);
+      alert(`💥 BLOCKADE FAILED!
+
+Enemy forces broke through. No effect.
+
+(Roll: ${roll} — needed ≤60)`);
+    }
+  }
+  else if(special==='cyber'){
+    // Theocracy immune
+    if(S.govt[target]==='Theocracy'){
+      alert(`✝️ ${CLS[target].name}'s Theocracy is immune to Cyber Attacks!`);
+      return;
+    }
+    inv[uk]--;
+    // 50% success — steal up to $800
+    if(roll<=50){
+      const stolen=Math.min(S.gold[target]||0, 800);
+      S.gold[target]=Math.max(0,(S.gold[target]||0)-stolen);
+      S.gold[cls]=(S.gold[cls]||0)+stolen;
+      saveState(); renderTeacherUI(); renderLB();
+      playCutscene('cyber',true);
+      addLog(`💻 CYBER ATTACK SUCCESS! ${CLS[cls].name} stole $${stolen} from ${CLS[target].name}! (roll: ${roll}/50)`);
+      alert(`💻 CYBER ATTACK SUCCESS!
+
+${CLS[cls].name} stole $${stolen.toLocaleString()} from ${CLS[target].name}.
+
+(Roll: ${roll} — needed ≤50)`);
+    } else {
+      saveState(); renderTeacherUI();
+      playCutscene('cyber',false);
+      addLog(`💻 CYBER ATTACK INTERCEPTED! ${CLS[target].name}'s firewall held. (roll: ${roll}/50)`);
+      alert(`🛡️ CYBER ATTACK BLOCKED!
+
+${CLS[target].name}'s firewall intercepted the attack. No gold stolen.
+
+(Roll: ${roll} — needed ≤50)`);
+    }
+  }
+  else if(special==='carrier'){
+    inv[uk]--;
+    // 70% success — enables cross-continent attack this turn
+    if(roll<=70){
+      saveState(); renderTeacherUI();
+      playCutscene('carrier',true);
+      addLog(`🚢 AIRCRAFT CARRIER DEPLOYED! ${CLS[cls].name} can now attack any country without bordering it! (roll: ${roll}/70)`);
+      alert(`🚢 AIRCRAFT CARRIER LAUNCHED!
+
+${CLS[cls].name} can now attack ANY country on the map — no border required.
+Use this for your attack this turn, then the carrier is consumed.
+
+(Roll: ${roll} — needed ≤70)`);
+    } else {
+      saveState(); renderTeacherUI();
+      playCutscene('carrier',false);
+      addLog(`🚢 CARRIER SUNK! ${CLS[cls].name}'s aircraft carrier was destroyed. (roll: ${roll}/70)`);
+      alert(`💥 CARRIER SUNK!
+
+${CLS[cls].name}'s carrier was intercepted and destroyed. Unit lost, no effect.
+
+(Roll: ${roll} — needed ≤70)`);
+    }
+  }
+  else if(special==='sub'){
+    inv[uk]--;
+    // 75% success — roll attack twice, take better result
+    if(roll<=75){
+      saveState(); renderTeacherUI();
+      playCutscene('sub',true);
+      addLog(`🤿 SUBMARINE DEPLOYED! ${CLS[cls].name} rolls attack dice TWICE — take the better result! (roll: ${roll}/75)`);
+      alert(`🤿 SUBMARINE LAUNCHED!
+
+${CLS[cls].name} rolls the d20 TWICE on their next attack and takes the higher roll.
+Use this advantage now, then the sub is consumed.
+
+(Roll: ${roll} — needed ≤75)`);
+    } else {
+      saveState(); renderTeacherUI();
+      playCutscene('sub',false);
+      addLog(`🤿 SUBMARINE DETECTED! ${CLS[cls].name}'s sub was found and destroyed. (roll: ${roll}/75)`);
+      alert(`💥 SUBMARINE DETECTED!
+
+Enemy sonar found the sub. Unit lost, no advantage granted.
+
+(Roll: ${roll} — needed ≤75)`);
+    }
   }
 }
 
 // ─── CUTSCENE PLAYER ───
-function playCutscene(type){
-  const vpath=VIDEOS[type];
-  if(!vpath) return; // no video = skip
+function playCutscene(type, success){
+  const key = success !== undefined ? type+'_'+(success?'success':'fail') : type;
+  const vpath = VIDEOS[key];
+  if(!vpath) return;
   const el=document.getElementById('cutscene');
-  const src=document.getElementById('cs-src');
+  const srcEl=document.getElementById('cs-src');
   const vid=document.getElementById('cs-video');
   const lbl=document.getElementById('cs-label');
-  const labels={icbm:'🚀 ICBM LAUNCH!',nuke:'☢️ NUCLEAR STRIKE!',bomber:'✈️ BOMBER STRIKE!',unrest:'👥 CIVIL UNREST!',battle:'⚔️ BATTLE!',win:'🎉 VICTORY!',lose:'🛡️ DEFENSE HOLDS!'};
-  lbl.textContent=labels[type]||'⚔️ INCOMING!';
-  src.src=vpath;
+  const labels={
+    icbm_success:'🚀 ICBM LAUNCH!', icbm_fail:'🛡️ ICBM INTERCEPTED!',
+    nuke_success:'☢️ NUCLEAR STRIKE!', nuke_fail:'🛡️ WARHEAD INTERCEPTED!',
+    bomber_success:'✈️ BOMBER STRIKE!', bomber_fail:'💥 BOMBER SHOT DOWN!',
+    cyber_success:'💻 CYBER ATTACK!', cyber_fail:'🛡️ FIREWALL BLOCKED IT!',
+    carrier_success:'🚢 CARRIER LAUNCHED!', carrier_fail:'💥 CARRIER SUNK!',
+    sub_success:'🤿 SUB DEPLOYED!', sub_fail:'💥 SUB DETECTED!',
+    ranger_success:'🪂 RANGER DEPLOYED!', ranger_fail:'💥 RANGER LOST!',
+    tank_success:'🚗 TANK DEPLOYED!', tank_fail:'💥 TANK DESTROYED!',
+    tax:'💪 TAX TIME!',
+    unrest_success:'👥 CIVIL UNREST!', unrest_fail:'🛡️ UNREST SUPPRESSED!',
+    blockade_success:'🚧 BLOCKADE DEPLOYED!', blockade_fail:'🚧 BLOCKADE FAILED!',
+  };
+  lbl.textContent=labels[key]||'⚔️ INCOMING!';
+  srcEl.src=vpath;
   vid.load();
-  vid.play().catch(()=>{}); // graceful fail if no video
+  vid.play().catch(()=>{});
   el.classList.add('open');
 }
 
@@ -1045,22 +1444,174 @@ function resetGame(){
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// BLOCKADE COUNTDOWN TICKER
+// ═══════════════════════════════════════════════════════════════
+let blockadeTickerInterval = null;
+
+function startBlockadeTicker(){
+  if(blockadeTickerInterval) clearInterval(blockadeTickerInterval);
+  renderBlockadeTicker();
+  blockadeTickerInterval = setInterval(renderBlockadeTicker, 1000);
+}
+
+function renderBlockadeTicker(){
+  const ticker = document.getElementById('blockade-ticker');
+  const listEl = document.getElementById('blockade-list');
+  if(!ticker) return;
+
+  const now = Date.now();
+  const active = Object.entries(S.blok)
+    .map(([iso, expStr]) => ({ iso, exp: new Date(expStr).getTime() }))
+    .filter(b => b.exp > now)
+    .sort((a,b) => a.exp - b.exp);
+
+  // Auto-expire any that just ran out
+  let changed = false;
+  Object.entries(S.blok).forEach(([iso, expStr]) => {
+    if(new Date(expStr).getTime() <= now){ delete S.blok[iso]; changed = true; }
+  });
+  if(changed){ saveState(); refreshMap(); renderLB(); }
+
+  if(!active.length){
+    ticker.innerHTML = '';
+    if(listEl) listEl.innerHTML = '<span style="color:#444">No active blockades</span>';
+    return;
+  }
+
+  ticker.innerHTML = active.map(b => {
+    const ms = b.exp - now;
+    const days  = Math.floor(ms / 86400000);
+    const hours = Math.floor((ms % 86400000) / 3600000);
+    const mins  = Math.floor((ms % 3600000)  / 60000);
+    const secs  = Math.floor((ms % 60000)    / 1000);
+    const timeStr = days > 0
+      ? `${days}d ${hours}h ${mins}m`
+      : hours > 0
+      ? `${hours}h ${mins}m ${secs}s`
+      : `${mins}m ${secs}s`;
+    return `<div class="blok-chip">🚧 <strong>${cname(b.iso)}</strong> ${timeStr}</div>`;
+  }).join('');
+
+  if(listEl) listEl.innerHTML = active.map(b => {
+    const ms = b.exp - now;
+    const days  = Math.floor(ms / 86400000);
+    const hours = Math.floor((ms % 86400000) / 3600000);
+    const mins  = Math.floor((ms % 3600000)  / 60000);
+    const secs  = Math.floor((ms % 60000)    / 1000);
+    const timeStr = days > 0 ? `${days}d ${hours}h ${mins}m` : hours > 0 ? `${hours}h ${mins}m ${secs}s` : `${mins}m ${secs}s`;
+    return `<span style="color:#ff9933">🚧 ${cname(b.iso)} [${b.iso}]</span> — <span style="color:#ffcc00">${timeStr}</span><br>`;
+  }).join('');
+}
+
+function liftBlockade(){
+  const iso = document.getElementById('lift-iso').value.trim().toUpperCase();
+  if(!iso){ alert('Enter a country ISO code'); return; }
+  if(!S.blok[iso]){ alert(`${cname(iso)} has no active blockade.`); return; }
+  if(!confirm(`Lift blockade on ${cname(iso)}?`)) return;
+  delete S.blok[iso];
+  saveState(); refreshMap(); renderBlockadeTicker();
+  addLog(`🚧 Blockade on ${cname(iso)} manually lifted.`);
+  document.getElementById('lift-iso').value = '';
+  alert(`✅ Blockade on ${cname(iso)} lifted.`);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MINI MAP (student read-only)
+// ═══════════════════════════════════════════════════════════════
+let miniSvg, miniProj, miniPath, miniCpaths, miniWorldCache, miniRefreshTimer;
+
+async function initMiniMap(){
+  const wrap = document.getElementById('mini-map-wrap');
+  if(!wrap) return;
+  // Use offsetWidth with fallback — clientWidth=0 before layout
+  const w = wrap.offsetWidth || Math.floor(window.innerWidth * 0.45) || 500;
+  const h = wrap.offsetHeight || 420;
+
+  miniSvg = d3.select('#mini-map-svg').attr('viewBox', `0 0 ${w} ${h}`).attr('width','100%').attr('height',h);
+  miniProj = d3.geoMercator().scale(w/6.4).translate([w/2, h/1.58]);
+  miniPath = d3.geoPath().projection(miniProj);
+
+  miniSvg.selectAll('*').remove();
+  // No dark bg rect — CSS handles the ocean color so countries are visible
+
+  if(!miniWorldCache){
+    try{
+      miniWorldCache = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+    } catch(e){
+      const el = document.getElementById('mini-last-update');
+      if(el) el.textContent = 'Map unavailable';
+      return;
+    }
+  }
+
+  const countries = topojson.feature(miniWorldCache, miniWorldCache.objects.countries);
+
+  miniCpaths = miniSvg.selectAll('.mini-country')
+    .data(countries.features)
+    .join('path')
+    .attr('class', d => miniMapCls(N2A2[parseInt(d.id)]))
+    .attr('d', miniPath);
+
+  miniSvg.append('path')
+    .datum(topojson.mesh(miniWorldCache, miniWorldCache.objects.countries, (a,b)=>a!==b))
+    .attr('fill','none').attr('stroke','#0d1224').attr('stroke-width',.3)
+    .attr('d', miniPath);
+
+  updateMiniTimestamp();
+  if(miniRefreshTimer) clearInterval(miniRefreshTimer);
+  miniRefreshTimer = setInterval(()=>refreshMiniMap(true), 30000);
+}
+
+function miniMapCls(iso){
+  if(!iso) return 'mini-country mini-unclaimed';
+  if(S.nuked && S.nuked.includes(iso)) return 'mini-country mini-nuked';
+  const owner = S.own[iso];
+  return 'mini-country ' + (owner ? 'mini-'+owner : 'mini-unclaimed');
+}
+
+function refreshMiniMap(silent){
+  S = loadState();
+  if(miniCpaths) miniCpaths.attr('class', d => miniMapCls(N2A2[parseInt(d.id)]));
+  updateMiniTimestamp();
+  if(!silent){
+    const btn = document.getElementById('mini-refresh');
+    if(btn){ btn.textContent='✓ Updated'; setTimeout(()=>btn.textContent='↻ REFRESH',1500); }
+  }
+}
+
+function updateMiniTimestamp(){
+  const el = document.getElementById('mini-last-update');
+  if(!el) return;
+  const now = Date.now();
+  const active = Object.entries(S.blok).filter(([,e])=>new Date(e).getTime()>now);
+  const blokStr = active.length ? ` · 🚧 ${active.length} blockade${active.length>1?'s':''}` : '';
+  el.textContent = 'Updated: '+new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})+blokStr;
+}
+
+function stopMiniMap(){
+  if(miniRefreshTimer){ clearInterval(miniRefreshTimer); miniRefreshTimer=null; }
+}
+
 // NAVIGATION + PIN
 // ═══════════════════════════════════════════════════════════════════
 const PIN='1449';
 
-function goLogin(){ show('login-screen'); }
+function goLogin(){ stopMiniMap(); show('login-screen'); }
 
 function goStudent(period){
   show('student-screen');
   renderLB();
   renderStudentView(period);
+  // Init mini map after layout settles
+  setTimeout(()=>initMiniMap(), 100);
 }
 
 function goTeacher(){
   show('teacher-screen');
   initMap().then(()=>{
     renderTeacherUI();
+    startBlockadeTicker();
   });
 }
 
@@ -1113,6 +1664,519 @@ window.addEventListener('resize',()=>{
   if(cpaths) cpaths.attr('d',path);
 });
 </script>
+<!-- FAQ MODAL -->
+<div id="faq-modal">
+  <div class="faq-box">
+    <div class="faq-header">
+      <h2>❓ GAME HELP &amp; FAQ</h2>
+      <button class="retro-btn sm secondary" onclick="closeFAQ()">✕ CLOSE</button>
+    </div>
+    <div class="faq-tabs" id="faq-tabs"></div>
+    <div class="faq-content" id="faq-content"></div>
+    <div class="faq-footer">Total World Conquest: Modern Era · © 2026 Jason Slaughter · PixelED Path, LLC</div>
+  </div>
+</div>
+
+<!-- COUNTRY LIST MODAL -->
+<div id="country-list-modal">
+  <div class="cl-box">
+    <div class="cl-header">
+      <h2>🌍 ALL COUNTRIES &amp; CODES</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="cl-search" id="cl-search" placeholder="Search country..." oninput="filterCountries(this.value)">
+        <button class="retro-btn sm secondary" onclick="document.getElementById('country-list-modal').classList.remove('open')">✕ CLOSE</button>
+      </div>
+    </div>
+    <div class="cl-body" id="cl-body"></div>
+    <div class="cl-footer">
+      <span class="cl-legend"><span style="display:inline-block;width:10px;height:10px;border-left:3px solid #d94141;margin-right:3px"></span>1st Hour</span>
+      <span class="cl-legend"><span style="display:inline-block;width:10px;height:10px;border-left:3px solid #2ea44f;margin-right:3px"></span>2nd Hour</span>
+      <span class="cl-legend"><span style="display:inline-block;width:10px;height:10px;border-left:3px solid #f2c94c;margin-right:3px"></span>5th Hour</span>
+      <span class="cl-legend"><span style="display:inline-block;width:10px;height:10px;border-left:3px solid #2f6fed;margin-right:3px"></span>6th Hour</span>
+      <span class="cl-legend"><span style="color:#888">pts = 5-Themes score</span></span>
+    </div>
+  </div>
+</div>
 <div style="display:none">© 2026 Jason Slaughter · PixelED Path, LLC · Total World Conquest: Modern Era</div>
+
+<!-- TAX MODAL -->
+<div id="tax-modal">
+  <div class="tax-box">
+    <div class="tax-title" id="tax-cls-name">🔴 1ST HOUR</div>
+    <div class="tax-sub">TAX TIME — CITIZENS MUST PAY!</div>
+    <div class="tax-jj">🏃</div>
+    <div class="tax-count">25</div>
+    <div class="tax-label">JUMPING JACKS</div>
+    <div class="tax-reward" id="tax-reward-text">Complete them to earn +$200 for your empire!</div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:8px;flex-wrap:wrap">
+      <button class="retro-btn" style="background:var(--yellow);color:var(--bg);padding:12px 28px;font-size:1em" onclick="confirmTax()">✅ TAXES COLLECTED — +$200</button>
+      <button class="retro-btn secondary" style="padding:12px 20px" onclick="cancelTax()">✕ CANCEL</button>
+    </div>
+    <div id="tax-uses-left" style="font-family:var(--font);font-size:.75em;color:#555;margin-top:14px;letter-spacing:1px"></div>
+  </div>
+</div>
 </body>
 </html>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// STORE
+// ═══════════════════════════════════════════════════════════════
+let storeActiveCls = '1st';
+let storeFromPeriod = 1;
+let storeFromTeacher = false;
+
+function goStore(){
+  storeFromTeacher = document.getElementById('teacher-screen').classList.contains('active');
+  show('store-screen');
+  renderStore();
+}
+
+function goStudentFromStore(){
+  if(storeFromTeacher){
+    show('teacher-screen');
+    renderTeacherUI();
+    startBlockadeTicker();
+  } else {
+    show('student-screen');
+    renderLB();
+    renderStudentView(storeFromPeriod);
+    setTimeout(()=>initMiniMap(), 100);
+  }
+}
+
+function setStoreTab(cls){
+  storeActiveCls = cls;
+  renderStore();
+}
+
+function renderStore(){
+  S = loadState(); // fresh read
+
+  // Period label
+  const cl = CLS[storeActiveCls];
+  document.getElementById('store-period-label').textContent = cl.emoji + ' ' + cl.name;
+
+  // Gold bar — all classes
+  let goldHtml = '';
+  for(const c of ['1st','2nd','5th','6th']){
+    const cl2 = CLS[c];
+    goldHtml += `<div class="store-gold-pill" style="border-color:${cl2.color};color:${cl2.color}">
+      ${cl2.emoji} ${cl2.name}: <span style="color:#ffd700">$${(S.gold[c]||0).toLocaleString()}</span>
+    </div>`;
+  }
+  document.getElementById('store-gold-bar').innerHTML = goldHtml;
+
+  // Tabs
+  let tabHtml = '';
+  for(const c of ['1st','2nd','5th','6th']){
+    const cl2 = CLS[c];
+    const active = c === storeActiveCls;
+    tabHtml += `<button class="store-tab ${active?'active':''}"
+      style="${active?`background:${cl2.color};border-color:${cl2.color}`:''}"
+      onclick="setStoreTab('${c}')">${cl2.emoji} ${cl2.name}</button>`;
+  }
+  document.getElementById('store-tabs').innerHTML = tabHtml;
+
+  // Inventory preview
+  const inv = S.inv[storeActiveCls]||{};
+  const invItems = Object.entries(UNITS)
+    .filter(([k])=>( inv[k]||0)>0)
+    .map(([k,u])=>`${u.icon} ${u.name} <strong style="color:var(--yellow)">×${inv[k]}</strong>`)
+    .join(' &nbsp;·&nbsp; ');
+  document.getElementById('store-inv-preview').innerHTML =
+    invItems ? `<span style="color:#aaa">Current inventory: </span>${invItems}`
+             : '<span style="color:#555">No units yet — buy some below!</span>';
+
+  // Unit cards
+  const gold = S.gold[storeActiveCls]||0;
+  const govt = S.govt[storeActiveCls];
+  let gridHtml = '';
+  for(const [uk, u] of Object.entries(UNITS)){
+    let cost = u.cost;
+    if(uk==='AIRBORNE_RANGER' && govt==='Dictatorship') cost = 50;
+    const curQty = inv[uk]||0;
+    const canAfford = gold >= cost;
+    const atMax = u.max && curQty >= u.max;
+    const blocked = !u.stack && curQty >= 1;
+    const disabled = !canAfford || atMax || blocked;
+    const disabledReason = !canAfford ? `Need $${cost-gold} more`
+      : atMax ? `Max ${u.max} owned` : blocked ? 'Already owned' : '';
+
+    gridHtml += `<div class="store-card">
+      <div class="store-card-icon">${u.icon}</div>
+      <div class="store-card-name">${u.name}</div>
+      <div class="store-card-effect">${u.effect}</div>
+      <div class="store-card-cost">$${cost.toLocaleString()}</div>
+      <div class="store-card-stack">${u.stack ? '✅ Stackable' : '❌ One at a time'}${curQty>0?` &nbsp;·&nbsp; Own: ${curQty}`:''}</div>
+      <div class="store-buy-row">
+        <button class="store-buy-btn" onclick="storeBuy('${storeActiveCls}','${uk}')"
+          ${disabled?'disabled':''}>
+          ${disabled ? disabledReason : '🛒 BUY'}
+        </button>
+      </div>
+    </div>`;
+  }
+  document.getElementById('store-grid').innerHTML = gridHtml;
+}
+
+function storeBuy(cls, uk){
+  const u = UNITS[uk];
+  if(!u) return;
+  let cost = u.cost;
+  if(uk==='AIRBORNE_RANGER' && S.govt[cls]==='Dictatorship') cost = 50;
+
+  const inv = S.inv[cls]||{};
+  const gold = S.gold[cls]||0;
+  const curQty = inv[uk]||0;
+
+  if(gold < cost){ showToast(`❌ Need $${cost}, only have $${gold}`); return; }
+  if(!u.stack && curQty>=1){ showToast(`❌ Already own a ${u.name}`); return; }
+  if(u.max && curQty>=u.max){ showToast(`❌ Max ${u.max} ${u.name} reached`); return; }
+
+  if(!confirm(`Buy ${u.name} for ${CLS[cls].name}?\nCost: $${cost}\nRemaining: $${gold-cost}`)) return;
+
+  S.gold[cls] = gold - cost;
+  S.inv[cls] = inv;
+
+  // Rangers (90%) and Tanks (85%) roll for success
+  if(uk==='AIRBORNE_RANGER'){
+    const roll=roll100();
+    if(roll<=90){
+      S.inv[cls][uk]=(curQty||0)+1;
+      saveState(); addLog(`🪂 ${CLS[cls].name} Ranger deployed — SUCCESS! (roll: ${roll}/90)`);
+      playCutscene('ranger',true);
+      showToast(`🪂 Ranger deployed! +1 attack bonus. $${S.gold[cls]} remaining`);
+    } else {
+      saveState(); addLog(`🪂 ${CLS[cls].name} Ranger LOST on deployment. (roll: ${roll}/90)`);
+      playCutscene('ranger',false);
+      showToast(`💥 Ranger lost! No bonus. (roll: ${roll}/90)`);
+    }
+    renderStore(); return;
+  }
+  if(uk==='TANK'){
+    const roll=roll100();
+    if(roll<=85){
+      S.inv[cls][uk]=(curQty||0)+1;
+      saveState(); addLog(`🚗 ${CLS[cls].name} Tank deployed — SUCCESS! (roll: ${roll}/85)`);
+      playCutscene('tank',true);
+      showToast(`🚗 Tank deployed! +2 attack bonus. $${S.gold[cls]} remaining`);
+    } else {
+      saveState(); addLog(`🚗 ${CLS[cls].name} Tank DESTROYED on deployment. (roll: ${roll}/85)`);
+      playCutscene('tank',false);
+      showToast(`💥 Tank destroyed! No bonus. (roll: ${roll}/85)`);
+    }
+    renderStore(); return;
+  }
+
+  S.inv[cls][uk] = (curQty||0) + 1;
+  saveState();
+  addLog(`🛒 ${CLS[cls].name} purchased ${u.name} (-$${cost})`);
+  showToast(`✅ ${u.name} purchased! $${S.gold[cls]} remaining`);
+  renderStore();
+}
+
+function showToast(msg){
+  const el = document.getElementById('store-toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(()=>el.style.display='none', 2500);
+}
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// FAQ SYSTEM
+// ═══════════════════════════════════════════════════════════════
+const FAQ_DB = {
+  'Getting Started': [
+    {
+      q: 'What is Total World Conquest?',
+      a: 'Total World Conquest is a classroom strategy game where each class period (1st, 2nd, 5th, 6th) represents an empire trying to control as many countries as possible. Each territory you own earns points based on real-world geography factors. The class with the most points wins!'
+    },
+    {
+      q: 'How do class periods play?',
+      a: '1st Hour = 🔴 Red Empire\n2nd Hour = 🟢 Green Empire\n5th Hour = 🟡 Yellow Empire\n6th Hour = 🔵 Blue Empire\n\nEach period plays together as one team. Your leader makes the big decisions, but the whole class votes and strategizes.'
+    },
+    {
+      q: 'What are Legacy Points?',
+      a: 'Legacy Points are the scores carried over from the Ancient World era of Total World Conquest. These are permanent bonuses that reflect how your class performed in the first part of the game:\n\n🟢 2nd Hour: 348 pts\n🔵 6th Hour: 293 pts\n🟡 5th Hour: 165 pts\n🔴 1st Hour: 56 pts\n\nNew territory points are added on top of these totals.'
+    },
+    {
+      q: 'How are territory points calculated?',
+      a: 'Every country is scored using the 5 Themes of Geography (1–5 each, max 25 pts):\n\n📍 Location — Strategic chokepoints (Suez Canal, Panama, Singapore)\n🌋 Place — Natural resources, oil, rare earth minerals, HDI\n🌱 Human-Environment Interaction — Arable land, water access, climate\n🚢 Movement — Ports, trade routes, infrastructure\n🌍 Region — GDP, geopolitical alliances, global influence\n\nExample: Saudi Arabia scores high on Place (oil) but low on H-E Interaction (desert). Panama scores high on Location (canal). Click any country on the map to see its full breakdown.'
+    },
+    {
+      q: 'How does my class earn gold?',
+      a: 'Gold is awarded by Mr. Slaughter through participation stamps. When you earn a stamp in class for participating, contributing, or demonstrating good behavior, that stamp converts to gold for your class. Gold is used to buy units in the store.'
+    },
+  ],
+
+  'Government & Leadership': [
+    {
+      q: 'What is a government type and why does it matter?',
+      a: 'Your class votes on a government type, which gives your empire a permanent special bonus for the rest of the game. Choose wisely — you can only change it by spending gold.\n\n🗳️ Democracy — +1 to ALL defense rolls\n📜 Republic — Claim 1 extra territory per turn\n👑 Monarchy — Immune to Nuclear Warhead & Cyber Attack (Divine Right)\n✊ Dictatorship — Airborne Rangers cost only $50 (half price)\n🔒 Authoritarianism — Blockades last 2 weeks instead of 1\n⚡ Totalitarianism — +3 to attack rolls, but -1 to defense\n💰 Oligarchy — Receive +$500 bonus gold immediately upon selection\n✝️ Theocracy — Immune to Cyber Attack'
+    },
+    {
+      q: 'How does leadership work?',
+      a: 'Each class elects:\n\n👑 Leader — Makes all final game decisions (which territory to claim, whether to attack, which unit to use)\n⚔️ Military General — Rolls the d20 against Mr. Slaughter to determine battle outcomes\n🗺️ Cartographer — Tracks territory acquisitions and helps update the map\n\nElections happen at the start of the game and can happen again by class vote.'
+    },
+    {
+      q: 'Can we change our government?',
+      a: 'Yes, but it costs gold. Talk to Mr. Slaughter about the current cost to switch. Your original government bonus is lost when you switch, and the new one takes effect immediately. Some bonuses (like Oligarchy\'s $500) only trigger once at assignment.'
+    },
+  ],
+
+  'Claiming Territories': [
+    {
+      q: 'How do we claim a new territory?',
+      a: 'On your turn, your leader can choose to claim any UNCLAIMED territory (shown in gray on the map). Mr. Slaughter updates the map. No dice roll needed — unclaimed land is free to take.\n\nRepublics can claim 2 territories per turn instead of 1.'
+    },
+    {
+      q: 'Can we claim any country in the world?',
+      a: 'Almost! Countries that have been nuked are permanently destroyed and shown as dark/scorched on the map — nobody can claim those. Everything else shown in gray is fair game on your turn.'
+    },
+    {
+      q: 'What countries are worth the most points?',
+      a: 'High-value territories based on the 5 Themes:\n\n🇺🇸 United States — 25 pts (max score)\n🇨🇳 China — 24 pts\n🇷🇺 Russia — 22 pts\n🇩🇪 Germany — 22 pts\n🇬🇧 United Kingdom — 22 pts\n🇸🇦 Saudi Arabia — 18 pts (oil!)\n🇵🇦 Panama — 16 pts (canal chokepoint)\n🇸🇬 Singapore — 16 pts (trade hub)\n🇯🇵 Japan — 19 pts\n🇮🇳 India — 20 pts\n\nClick any country on the map to see its exact score breakdown.'
+    },
+    {
+      q: 'What are chokepoints and why are they valuable?',
+      a: 'Chokepoints are narrow geographic passages that control massive amounts of global trade and military movement. They score 4-5 on the Location theme:\n\n🇪🇬 Egypt — Suez Canal (connects Europe/Asia)\n🇵🇦 Panama — Panama Canal (connects Atlantic/Pacific)\n🇹🇷 Turkey — Bosphorus Strait\n🇸🇬 Singapore — Malacca Strait (40% of world trade)\n🇩🇯 Djibouti — Horn of Africa/Red Sea\n🇴🇲 Oman — Strait of Hormuz (oil shipping)'
+    },
+  ],
+
+  'Battle & War': [
+    {
+      q: 'How does attacking work?',
+      a: 'To attack an enemy territory:\n1. Your Military General rolls a d20\n2. Mr. Slaughter rolls a d20 for the defender\n3. Both sides add their modifiers (units, government bonuses)\n4. Highest total wins. TIES always go to the DEFENDER.\n5. Mr. Slaughter updates the map if the attacker wins.'
+    },
+    {
+      q: 'Can we attack any territory?',
+      a: 'Standard attacks require a NEIGHBORING (bordering) territory — your empire must share a border or coastline with the target.\n\nTo attack across continents or oceans, you need an Aircraft Carrier 🚢 or ICBM 🚀 in your inventory.'
+    },
+    {
+      q: 'What modifiers apply to battle rolls?',
+      a: 'ATTACK bonuses:\n🪂 Airborne Ranger — +1 per Ranger (unlimited stack)\n🚗 Tank — +2 per Tank (max 3 Tanks = +6)\n⚡ Totalitarianism govt — +3\n🚀 ICBM bonus (when active) — +5\n\nDEFENSE bonuses:\n🗳️ Democracy govt — +1 to all defense rolls\n\nDEFENSE penalties:\n⚡ Totalitarianism govt — -1 to defense\n\nNote: Cyber Attack removes the Democracy +1 defense bonus for one battle.'
+    },
+    {
+      q: 'What happens if we lose a battle?',
+      a: 'If the defender wins, nothing changes — the territory stays with the defender. The attacking class does not lose any territory from a failed attack. Some units (Submarine, Cyber Attack, ICBM) are consumed whether the attack succeeds or fails.'
+    },
+    {
+      q: 'Can an enemy attack us back on the same turn?',
+      a: 'No. Each class gets one action per turn (claim OR attack). They cannot attack you on the same turn they used their action elsewhere. However, on their NEXT turn they can choose to retaliate.'
+    },
+    {
+      q: 'What is a blockade and how does it work?',
+      a: 'A Blockade (purchased from the store for $300) prevents a territory from being attacked for 7 days. Authoritarianism government extends this to 14 days.\n\nDeployment has a 75% success rate:\n✅ Success: Territory is protected, plays cutscene\n❌ Fail: Blockade fails, unit is consumed anyway\n\nBlockaded territories show a dashed border on the map.'
+    },
+  ],
+
+  'Units & Inventory': [
+    {
+      q: 'What units can we buy?',
+      a: 'All units are purchased from the TWC Store with gold:\n\n🪂 Airborne Ranger — $100 — +1 attack roll (stackable, unlimited)\n🚗 Tank — $200 — +2 attack roll (max 3)\n✈️ Bomber — $350 — Attack 2 territories (-2 penalty each)\n🚢 Aircraft Carrier — $500 — Attack cross-continent\n🤿 Submarine — $400 — Roll twice, take the better result\n🚧 Blockade — $300 — Protect territory 7 days (75% success)\n💻 Cyber Attack — $450 — Remove enemy Democracy defense bonus\n🚀 ICBM — $800 — +5 to next cross-continental attack (80% success)\n💣 Bomber Strike — $600 — Force enemy to lose 2 random territories (85% success)\n👥 Civil Unrest — $700 — Target class loses 2 turns (55% success)\n☢️ Nuclear Warhead — $2,000 — Destroy territory forever + wipe enemy inventory (40% success)'
+    },
+    {
+      q: 'What does "stackable" mean?',
+      a: 'Stackable units can be bought multiple times and their bonuses add up. For example, if you own 3 Airborne Rangers, you get +3 to every attack roll.\n\nNon-stackable units can only be owned once at a time. You must use (consume) the one you have before buying another.'
+    },
+    {
+      q: 'When are units consumed?',
+      a: 'Most units are consumed (used up) when deployed:\n🤿 Submarine — consumed after use\n💻 Cyber Attack — consumed after use\n🚀 ICBM — consumed whether it succeeds or fails\n💣 Bomber Strike — consumed whether it succeeds or fails\n👥 Civil Unrest — consumed whether it succeeds or fails\n🚧 Blockade — consumed whether it succeeds or fails\n☢️ Nuclear Warhead — consumed whether it succeeds or fails\n\n🪂 Rangers and 🚗 Tanks are permanent modifiers — they stay in inventory and apply to every attack until you lose them (e.g. to a nuke).'
+    },
+    {
+      q: 'What is the Dictatorship discount?',
+      a: 'If your class chooses Dictatorship as your government, Airborne Rangers cost only $50 instead of $100 — half price. Since Rangers are stackable with no limit, this means a Dictatorship can rapidly build up a massive attack bonus by buying many Rangers over time.'
+    },
+  ],
+
+  'Special Weapons': [
+    {
+      q: 'What is a Nuclear Warhead and how risky is it?',
+      a: '☢️ Nuclear Warhead costs $2,000 and has a 40% success rate.\n\n✅ SUCCESS: The target territory is PERMANENTLY DESTROYED — shown as scorched on the map forever, and nobody (not even you) can ever claim it. PLUS the targeted class loses their ENTIRE inventory.\n\n❌ FAIL: The warhead is intercepted. Unit consumed, no effect.\n\n👑 IMMUNITY: Monarchy government (Divine Right) completely blocks nukes — the warhead fails automatically regardless of roll.\n\nUse this weapon carefully. You\'re not just taking a territory — you\'re removing it from the game permanently.'
+    },
+    {
+      q: 'What is Civil Unrest?',
+      a: '👥 Civil Unrest costs $700 and has a 55% success rate. It targets another class (not a territory).\n\n✅ SUCCESS: The target class LOSES THEIR NEXT 2 TURNS. They cannot claim or attack during those turns.\n\n❌ FAIL: Their government suppresses the unrest. Unit consumed, no effect.\n\n🛡️ IMMUNITY: Monarchy (Divine Right) and Theocracy governments are immune to Civil Unrest.'
+    },
+    {
+      q: 'What is a Bomber Strike?',
+      a: '💣 Bomber Strike costs $600 and has an 85% success rate.\n\n✅ SUCCESS: The targeted class randomly LOSES 2 OF THEIR TERRITORIES. Mr. Slaughter picks 2 at random from their holdings — those countries become unclaimed.\n\n❌ FAIL: The bomber is shot down. The attacking class loses $150, and the unit is consumed.'
+    },
+    {
+      q: 'What does an ICBM do?',
+      a: '🚀 ICBM costs $800 and has an 80% success rate.\n\n✅ SUCCESS: Your class gains a +5 bonus to your very next attack roll. This is especially powerful for cross-continental attacks where you need an Aircraft Carrier.\n\n❌ FAIL: The missile is intercepted. Unit consumed, no effect.'
+    },
+    {
+      q: 'Can we protect ourselves from special weapons?',
+      a: 'Yes — certain governments provide immunity:\n\n👑 Monarchy (Divine Right):\n  — Immune to Nuclear Warhead\n  — Immune to Civil Unrest\n\n✝️ Theocracy:\n  — Immune to Cyber Attack\n  — Immune to Civil Unrest\n\nBlockades protect individual territories from standard attacks but do NOT stop Nuclear Warheads or Bomber Strikes.'
+    },
+  ],
+
+  'Diplomacy & Alliances': [
+    {
+      q: 'Can classes form alliances?',
+      a: 'Absolutely! Alliances are one of the most powerful strategic tools in the game. Two classes can agree not to attack each other, coordinate which territories to claim, or even help defend against a common enemy.\n\nAlliances are not enforced by the game — they run on trust. Betraying an alliance is allowed (and sometimes strategically smart) but your reputation with other classes will suffer.'
+    },
+    {
+      q: 'Can we make deals with other classes?',
+      a: 'Yes. Common deals include:\n\n🤝 Non-Aggression Pacts — "We won\'t attack each other for X turns"\n🌍 Territory Agreements — "You take Africa, we take Asia"\n💰 Gold Trades — Classes cannot directly transfer gold, but can agree to coordinate actions that benefit both\n⚔️ Military Alliances — "If Class A attacks you, we\'ll spend our turn attacking Class A"\n\nAll deals are honor-based. Mr. Slaughter does not enforce them.'
+    },
+    {
+      q: 'What is the best strategy for winning?',
+      a: 'There\'s no single right answer, but experienced players suggest:\n\n1. 🌍 Focus on HIGH-VALUE territories early (US, China, Russia, Germany)\n2. 🤝 Form an alliance when you\'re losing — ganging up on the leader works\n3. 💰 Save gold for game-changing weapons, not just Rangers\n4. 🏛️ Choose your government carefully based on your playstyle\n5. 🗺️ Control chokepoints — Panama, Suez, Singapore give huge points for their size\n6. ☢️ Save the nuke for when the leader pulls far ahead — the inventory wipe can flip the game'
+    },
+    {
+      q: 'Can we talk to other classes during the game?',
+      a: 'Diplomacy happens in the hallways, at lunch, between classes — anywhere outside of class time. During Mr. Slaughter\'s class, your Leader speaks for your empire. Before the turn begins, the Leader should have already consulted with representatives to decide the plan.'
+    },
+  ],
+
+  'Map & Geography': [
+    {
+      q: 'How do I read the map?',
+      a: 'The map uses ISO country codes (2-letter abbreviations). Colors show ownership:\n\n🔴 Red = 1st Hour\n🟢 Green = 2nd Hour\n🟡 Yellow = 5th Hour\n🔵 Blue = 6th Hour\n⬜ Gray = Unclaimed (free to take)\n⬛ Dark/Scorched = Nuked (permanently destroyed)\n🔶 Dashed border = Blockaded\n\nClick "View All Countries & Codes" for a full list organized by region.'
+    },
+    {
+      q: 'What are ISO codes?',
+      a: 'ISO codes are the 2-letter abbreviations used internationally to identify countries. Examples:\n\nUS = United States\nFR = France\nDE = Germany\nCN = China\nRU = Russia\nBR = Brazil\nEG = Egypt\nNG = Nigeria\nIN = India\nAU = Australia\n\nWhen Mr. Slaughter asks for a country code to update the map, use these 2-letter codes. Use the "View All Countries" button for the complete list.'
+    },
+    {
+      q: 'How does the student mini-map work?',
+      a: 'The mini-map on your student dashboard mirrors the teacher\'s map in real time. It shows the same territory colors and ownership.\n\nHit the ↻ REFRESH button to pull the latest update, or wait — it auto-refreshes every 30 seconds automatically. The timestamp shows the last update time.'
+    },
+  ],
+
+  'Scoring & Winning': [
+    {
+      q: 'How is the final score calculated?',
+      a: 'Final Score = Legacy Points + Territory Points\n\nLegacy Points = Your score from the Ancient World era (locked in)\nTerritory Points = Sum of all 5-Themes scores for every country you own\n\nThe leaderboard updates live every time Mr. Slaughter claims or changes a territory.'
+    },
+    {
+      q: 'When does the game end?',
+      a: 'Mr. Slaughter sets the end date. The class with the highest total score (Legacy Points + Territory Points) at the end date wins. Keep checking the leaderboard on your student dashboard!'
+    },
+    {
+      q: 'Can we come back from last place?',
+      a: 'Absolutely. Special weapons exist specifically to shake up the standings:\n\n💣 Bomber Strike can strip 2 territories from the leader\n☢️ Nuclear Warhead wipes the leader\'s entire inventory\n👥 Civil Unrest makes the leader lose 2 turns\n🤝 Alliance + coordinated attacks can rapidly redistribute territory\n\nThe game is designed to allow comebacks right up to the end.'
+    },
+  ],
+};
+
+// ═══════════════════════════════════════════════════════════════
+// COUNTRY LIST MODAL
+// ═══════════════════════════════════════════════════════════════
+const REGIONS = {
+  'North America':  ['US','CA','MX','GT','BZ','SV','HN','NI','CR','PA','CU','JM','HT','DO','PR','TT'],
+  'South America':  ['CO','VE','GY','SR','BR','EC','PE','BO','PY','AR','UY','CL'],
+  'Western Europe': ['GB','IE','FR','ES','PT','BE','NL','LU','DE','AT','CH','IT','MT','MC','AD','LI'],
+  'Northern Europe':['NO','SE','FI','DK','IS','EE','LV','LT','PL','CZ','SK','HU','RO','BG','HR','SI','RS','BA','ME','MK','AL'],
+  'Eastern Europe': ['RU','UA','BY','MD','GE','AM','AZ'],
+  'Middle East':    ['TR','SY','LB','IL','JO','IQ','IR','SA','KW','QA','AE','BH','OM','YE'],
+  'Africa':         ['MA','DZ','TN','LY','EG','SD','SS','ET','ER','DJ','SO','KE','UG','TZ','RW','BI','MZ','ZW','ZM','MW','AO','CD','CG','GA','CM','NG','GH','CI','SN','GM','GW','GN','SL','LR','BF','ML','NE','TD','CF','MG','MU','SC','CV','ST','KM'],
+  'Central Asia':   ['KZ','UZ','TM','TJ','KG','AF','PK'],
+  'South Asia':     ['IN','BD','LK','NP','BT','MV'],
+  'East Asia':      ['CN','JP','KR','KP','MN','TW','HK'],
+  'Southeast Asia': ['MM','TH','LA','KH','VN','PH','MY','SG','ID','BN','TL'],
+  'Oceania':        ['AU','NZ','PG','FJ','SB','VU','WS','TO','KI','NR','PW','MH','FM'],
+};
+
+let _allCountryItems = [];
+
+function openCountryList(){
+  S = loadState();
+  const modal = document.getElementById('country-list-modal');
+  modal.classList.add('open');
+  _buildCountryList();
+  document.getElementById('cl-search').value = '';
+  document.getElementById('cl-search').focus();
+}
+
+function _buildCountryList(){
+  _allCountryItems = [];
+  let html = '';
+  for(const [region, isos] of Object.entries(REGIONS)){
+    html += `<div class="cl-region"><div class="cl-region-title">${region}</div><div class="cl-region-body" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px">`;
+    for(const iso of isos){
+      const owner = S.own[iso];
+      const pts = cval(iso);
+      const nuked = (S.nuked||[]).includes(iso);
+      const ownerClass = owner ? `owned-${owner}` : '';
+      const nukedClass = nuked ? 'nuked' : '';
+      const ownerLabel = owner ? `<span style="color:${CLS[owner].color};font-size:.7em">${CLS[owner].emoji}</span>` : '';
+      const item = { iso, name: cname(iso), pts, owner, nuked, region };
+      _allCountryItems.push(item);
+      html += `<div class="cl-item ${ownerClass} ${nukedClass}" data-iso="${iso}">
+        <span class="cl-code">${iso}</span>
+        <span style="flex:1">${cname(iso)}</span>
+        ${ownerLabel}
+        <span style="color:#555;font-size:.75em">${pts}pt</span>
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+  document.getElementById('cl-body').innerHTML = html;
+}
+
+function filterCountries(query){
+  const q = query.trim().toLowerCase();
+  document.querySelectorAll('#cl-body .cl-item').forEach(el => {
+    const iso = el.dataset.iso || '';
+    const name = (el.querySelector('span:nth-child(2)')||{}).textContent||'';
+    const match = !q || iso.toLowerCase().includes(q) || name.toLowerCase().includes(q);
+    el.style.display = match ? '' : 'none';
+  });
+  // Hide region headers if all children hidden
+  document.querySelectorAll('#cl-body .cl-region').forEach(reg => {
+    const visible = [...reg.querySelectorAll('.cl-item')].some(el => el.style.display !== 'none');
+    reg.style.display = visible ? '' : 'none';
+  });
+}
+
+function openFAQ(category){
+  const modal = document.getElementById('faq-modal');
+  modal.classList.add('open');
+  renderFAQ(category || Object.keys(FAQ_DB)[0]);
+}
+
+function closeFAQ(){
+  document.getElementById('faq-modal').classList.remove('open');
+}
+
+function renderFAQ(activeCategory){
+  // Tabs
+  const tabs = document.getElementById('faq-tabs');
+  tabs.innerHTML = Object.keys(FAQ_DB).map(cat =>
+    `<button class="faq-tab ${cat===activeCategory?'active':''}" onclick="renderFAQ('${cat}')">${cat}</button>`
+  ).join('');
+
+  // Questions
+  const items = FAQ_DB[activeCategory] || [];
+  const content = document.getElementById('faq-content');
+  content.innerHTML = items.map((item, i) =>
+    `<div class="faq-item" id="faq-item-${i}">
+      <div class="faq-q" onclick="toggleFAQ(${i})">
+        <span class="faq-arrow" id="faq-arrow-${i}">▶</span>
+        ${item.q}
+      </div>
+      <div class="faq-a" id="faq-a-${i}">${item.a.replace(/\n/g,'<br>')}</div>
+    </div>`
+  ).join('');
+}
+
+function toggleFAQ(i){
+  const ans = document.getElementById('faq-a-'+i);
+  const arr = document.getElementById('faq-arrow-'+i);
+  const open = ans.classList.toggle('open');
+  arr.textContent = open ? '▼' : '▶';
+  arr.style.color = open ? 'var(--yellow)' : '';
+}
+
+// Close on background click
+document.addEventListener('DOMContentLoaded', ()=>{
+  const fm = document.getElementById('faq-modal');
+  if(fm) fm.addEventListener('click', e=>{ if(e.target===fm) closeFAQ(); });
+  const cl = document.getElementById('country-list-modal');
+  if(cl) cl.addEventListener('click', e=>{ if(e.target===cl) cl.classList.remove('open'); });
+});
+</script>
