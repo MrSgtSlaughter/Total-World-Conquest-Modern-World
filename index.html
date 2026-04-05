@@ -490,9 +490,9 @@ body{background:var(--bg);color:var(--green);font-family:var(--font);overflow:hi
       <div class="retro-panel">
         <h2>💾 DATA</h2>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="retro-btn sm secondary" onclick="exportGame()">📤 Export</button>
-          <label class="retro-btn sm secondary" style="cursor:pointer">📥 Import<input type="file" accept=".json" onchange="importGame(event)" style="display:none"></label>
-          <button class="retro-btn sm danger" onclick="if(confirm('Reset ALL game data?'))resetGame()">🗑️ Reset</button>
+          <button class="retro-btn sm secondary" onclick="openExportModal()">📤 Export</button>
+          <button class="retro-btn sm secondary" onclick="openImportModal()">📥 Import</button>
+          <button class="retro-btn sm danger" onclick="openResetPin()">🗑️ Reset</button>
         </div>
       </div>
 
@@ -503,8 +503,8 @@ body{background:var(--bg);color:var(--green);font-family:var(--font);overflow:hi
 <!-- ══════════════ MODALS ══════════════ -->
 <div class="modal-bg" id="pin-modal">
   <div class="modal" style="max-width:320px;text-align:center">
-    <h2>🔐 TEACHER ACCESS</h2>
-    <p style="font-size:.85em;margin-bottom:14px;color:var(--bg)">Enter PIN to access controls</p>
+    <h2 id="pin-modal-title">🔐 TEACHER ACCESS</h2>
+    <p style="font-size:.85em;margin-bottom:14px;color:var(--bg)" id="pin-modal-desc">Enter PIN to access controls</p>
     <input class="pin-input" id="pin-in" type="password" maxlength="6" placeholder="••••" onkeydown="if(event.key==='Enter')checkPin()">
     <div class="pin-err" id="pin-err"></div>
     <div style="display:flex;gap:8px;margin-top:12px">
@@ -514,10 +514,41 @@ body{background:var(--bg);color:var(--green);font-family:var(--font);overflow:hi
   </div>
 </div>
 
+<!-- EXPORT MODAL -->
+<div class="modal-bg" id="export-modal">
+  <div class="modal" style="max-width:560px;text-align:left">
+    <button class="modal-close" onclick="closeModal('export-modal')">✕</button>
+    <h2>📤 EXPORT GAME STATE</h2>
+    <p style="font-size:.82em;color:var(--bg);margin-bottom:10px">Select all text below, copy it, then paste into a .txt or .json file on your computer.</p>
+    <textarea id="export-ta" style="width:100%;height:180px;background:#fff;color:#000;border:2px solid var(--bg);font-family:monospace;font-size:.72em;padding:6px;resize:vertical" readonly></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="retro-btn" style="flex:1" onclick="selectExportAll()">📋 SELECT ALL</button>
+      <button class="retro-btn" style="flex:1" onclick="copyExportText()">⬇️ COPY TO CLIPBOARD</button>
+      <button class="retro-btn secondary" onclick="closeModal('export-modal')">CLOSE</button>
+    </div>
+    <div id="export-copy-msg" style="font-size:.75em;color:green;margin-top:6px;min-height:18px"></div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-bg" id="import-modal">
+  <div class="modal" style="max-width:560px;text-align:left">
+    <button class="modal-close" onclick="closeModal('import-modal')">✕</button>
+    <h2>📥 IMPORT GAME STATE</h2>
+    <p style="font-size:.82em;color:var(--bg);margin-bottom:6px">Paste your exported save data below, then click LOAD.</p>
+    <textarea id="import-ta" style="width:100%;height:180px;background:#fff;color:#000;border:2px solid var(--bg);font-family:monospace;font-size:.72em;padding:6px;resize:vertical" placeholder="Paste JSON save data here..."></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="retro-btn" style="flex:1" onclick="importFromText()">✅ LOAD SAVE</button>
+      <button class="retro-btn secondary" onclick="closeModal('import-modal')">CANCEL</button>
+    </div>
+    <div id="import-msg" style="font-size:.75em;margin-top:6px;min-height:18px"></div>
+  </div>
+</div>
+
 <!-- CUTSCENE OVERLAY -->
 <div id="cutscene">
   <div class="cs-label" id="cs-label">⚔️ INCOMING ATTACK</div>
-  <video id="cs-video" onended="endCutscene()">
+  <video id="cs-video" onended="endCutscene()" playsinline webkit-playsinline>
     <source id="cs-src" src="" type="video/mp4">
   </video>
   <div class="cs-skip" onclick="endCutscene()">▶ SKIP</div>
@@ -937,6 +968,7 @@ function renderTeacherUI(){
   for(const k of specials){
     const u=UNITS[k];
     const needsTarget = k==='CIVIL_UNREST' || k==='CYBER_ATTACK' || k==='BOMBER' || k==='BLOCKADE';
+    const needsIso = k==='NUCLEAR_WARHEAD';
     const isImg = u.icon.startsWith('<img');
     wh+=`<div class="weapon-card">
       <div class="wc-sprite">${isImg ? u.icon.replace('class="unit-sprite"','class="unit-sprite" style="height:36px"') : `<span style="font-size:1.8em;line-height:1">${u.icon}</span>`}</div>
@@ -946,6 +978,7 @@ function renderTeacherUI(){
         <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px">
           <select class="ctrl-select" id="wc-${k}" style="flex:1;min-width:80px">${clsOpts}</select>
           ${needsTarget?`<select class="ctrl-select" id="wt-${k}" style="flex:1;min-width:80px">${clsOpts}</select>`:''}
+          ${needsIso?`<input class="ctrl-input" id="wi-${k}" placeholder="ISO code" style="flex:1;min-width:70px;text-transform:uppercase">`:''}
         </div>
         <button class="retro-btn sm danger" style="width:100%;padding:5px" onclick="deployWeapon('${k}')">⚡ DEPLOY</button>
       </div>
@@ -1147,8 +1180,10 @@ function deployWeapon(uk){
       alert(`👑 DIVINE RIGHT! ${CLS[target].name}'s Monarchy is immune to Nuclear Warheads!`);
       return;
     }
-    const iso=prompt('Enter territory ISO code to nuke:','').trim().toUpperCase();
-    if(!iso) return;
+    const isoEl=document.getElementById('wi-NUCLEAR_WARHEAD');
+    const iso=(isoEl?isoEl.value:'').trim().toUpperCase();
+    if(!iso){ alert('Enter a territory ISO code in the nuke field first.'); inv[uk]++; saveState(); return; }
+    if(isoEl) isoEl.value='';
     inv[uk]--;
     // 40% success
     if(roll<=40){
@@ -1402,8 +1437,12 @@ function playCutscene(type, success){
 
 function endCutscene(){
   const el=document.getElementById('cutscene');
+  const srcEl=document.getElementById('cs-src');
   const vid=document.getElementById('cs-video');
   vid.pause();
+  vid.currentTime=0;
+  srcEl.src='';
+  vid.load();
   el.classList.remove('open');
 }
 
@@ -1414,34 +1453,69 @@ function flashUnrest(){
 }
 
 // ─── EXPORT / IMPORT / RESET ───
-function exportGame(){
-  const data={exported:new Date().toISOString(),state:{[SK.OWN]:JSON.stringify(S.own),[SK.GOLD]:JSON.stringify(S.gold),[SK.INV]:JSON.stringify(S.inv),[SK.GOVT]:JSON.stringify(S.govt),[SK.BLOK]:JSON.stringify(S.blok),[SK.SKIP]:JSON.stringify(S.skip),[SK.LOG]:JSON.stringify(S.log)}};
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
-  a.download='TWC_Modern_v2.json'; a.click();
-  alert('✅ Game state exported!');
+function openExportModal(){
+  const data={exported:new Date().toISOString(),state:{[SK.OWN]:JSON.stringify(S.own),[SK.GOLD]:JSON.stringify(S.gold),[SK.INV]:JSON.stringify(S.inv),[SK.GOVT]:JSON.stringify(S.govt),[SK.BLOK]:JSON.stringify(S.blok),[SK.SKIP]:JSON.stringify(S.skip),[SK.LOG]:JSON.stringify(S.log),[SK.NUKED]:JSON.stringify(S.nuked),[SK.ICBM_BONUS]:JSON.stringify(S.icbm),[SK.TAX]:JSON.stringify(S.tax)}};
+  document.getElementById('export-ta').value = JSON.stringify(data,null,2);
+  document.getElementById('export-copy-msg').textContent='';
+  document.getElementById('export-modal').classList.add('open');
 }
-
-function importGame(event){
-  const file=event.target.files[0]; if(!file) return;
-  const r=new FileReader();
-  r.onload=e=>{
-    try{
-      const data=JSON.parse(e.target.result);
-      const st=data.state||data;
-      for(const[k,v] of Object.entries(st)) localStorage.setItem(k,v);
-      S=loadState(); refreshMap(); renderLB(); renderTeacherUI();
-      alert('✅ Game state imported!');
-    }catch(err){ alert('Import failed: '+err.message); }
-  };
-  r.readAsText(file);
+function selectExportAll(){
+  const ta=document.getElementById('export-ta');
+  ta.select(); ta.setSelectionRange(0,99999);
 }
+function copyExportText(){
+  const ta=document.getElementById('export-ta');
+  ta.select(); ta.setSelectionRange(0,99999);
+  try{
+    document.execCommand('copy');
+    document.getElementById('export-copy-msg').textContent='✅ Copied! Paste into a .txt file and save it.';
+  }catch(e){
+    document.getElementById('export-copy-msg').textContent='⚠️ Press Ctrl+C / Cmd+C to copy.';
+  }
+}
+// legacy alias
+function exportGame(){ openExportModal(); }
 
-function resetGame(){
+function openImportModal(){
+  document.getElementById('import-ta').value='';
+  document.getElementById('import-msg').textContent='';
+  document.getElementById('import-modal').classList.add('open');
+}
+function importFromText(){
+  const text=document.getElementById('import-ta').value.trim();
+  const msgEl=document.getElementById('import-msg');
+  if(!text){ msgEl.style.color='red'; msgEl.textContent='❌ Paste your save data first.'; return; }
+  try{
+    const data=JSON.parse(text);
+    const st=data.state||data;
+    for(const[k,v] of Object.entries(st)) localStorage.setItem(k,v);
+    S=loadState();
+    refreshMap();
+    renderLB();
+    renderTeacherUI();
+    startBlockadeTicker();
+    msgEl.style.color='green';
+    msgEl.textContent='✅ Loaded! All territories, gold, and inventory restored.';
+    setTimeout(()=>closeModal('import-modal'),1500);
+  }catch(err){
+    msgEl.style.color='red';
+    msgEl.textContent='❌ Invalid save data: '+err.message;
+  }
+}
+// legacy alias
+function importGame(){ openImportModal(); }
+
+function doReset(){
   for(const k of Object.values(SK)) localStorage.removeItem(k);
-  S=loadState(); refreshMap(); renderLB(); renderTeacherUI();
-  alert('✅ Game reset — all territories unclaimed, scores at legacy values.');
+  S=loadState();
+  refreshMap();
+  renderLB();
+  renderTeacherUI();
+  addLog('🗑️ Game was reset by teacher.');
+  alert('✅ Game reset complete. All empires start fresh.');
 }
+// legacy alias
+function resetGame(){ openResetPin(); }
 
 // ═══════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════
@@ -1621,20 +1695,41 @@ function show(id){
 }
 
 function openPinModal(){
+  _pinMode='teacher';
   document.getElementById('pin-in').value='';
   document.getElementById('pin-err').textContent='';
+  document.getElementById('pin-modal-title').textContent='🔐 TEACHER ACCESS';
+  document.getElementById('pin-modal-desc').textContent='Enter PIN to access controls';
   document.getElementById('pin-modal').classList.add('open');
   setTimeout(()=>document.getElementById('pin-in').focus(),100);
 }
 
+let _pinMode = 'teacher'; // 'teacher' or 'reset'
+
 function checkPin(){
   if(document.getElementById('pin-in').value===PIN){
     closeModal('pin-modal');
-    goTeacher();
+    if(_pinMode==='reset'){
+      _pinMode='teacher';
+      doReset();
+    } else {
+      _pinMode='teacher';
+      goTeacher();
+    }
   } else {
     document.getElementById('pin-err').textContent='❌ Incorrect PIN';
     document.getElementById('pin-in').value='';
   }
+}
+
+function openResetPin(){
+  _pinMode='reset';
+  document.getElementById('pin-in').value='';
+  document.getElementById('pin-err').textContent='';
+  document.getElementById('pin-modal-title').textContent='🗑️ CONFIRM RESET';
+  document.getElementById('pin-modal-desc').textContent='Enter teacher PIN to wipe all game data.';
+  document.getElementById('pin-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('pin-in').focus(),100);
 }
 
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
@@ -1967,7 +2062,7 @@ const FAQ_DB = {
     },
     {
       q: 'What is a blockade and how does it work?',
-      a: 'A Blockade (purchased from the store for $300) prevents a territory from being attacked for 7 days. Authoritarianism government extends this to 14 days.\n\nDeployment has a 75% success rate:\n✅ Success: Territory is protected, plays cutscene\n❌ Fail: Blockade fails, unit is consumed anyway\n\nBlockaded territories show a dashed border on the map.'
+      a: 'A Blockade costs $300 and targets an enemy class, preventing them from attacking for the rest of the day.\n\nDeployment has a 60% success rate:\n✅ Success: Target class loses 1 attack turn\n❌ Fail: Blockade broken, unit consumed\n\nUse it to slow down a class that\'s on a territory-claiming streak.'
     },
   ],
 
@@ -2001,11 +2096,15 @@ const FAQ_DB = {
     },
     {
       q: 'What is a Bomber Strike?',
-      a: '💣 Bomber Strike costs $600 and has an 85% success rate.\n\n✅ SUCCESS: The targeted class randomly LOSES 2 OF THEIR TERRITORIES. Mr. Slaughter picks 2 at random from their holdings — those countries become unclaimed.\n\n❌ FAIL: The bomber is shot down. The attacking class loses $150, and the unit is consumed.'
+      a: '✈️ Bomber costs $350 and has a 70% success rate.\n\n✅ SUCCESS: 1 random territory from the targeted class becomes UNCLAIMED — free for anyone to grab on their next turn.\n\n❌ FAIL: The bomber is shot down. Unit consumed, no effect.'
     },
     {
       q: 'What does an ICBM do?',
       a: '🚀 ICBM costs $800 and has an 80% success rate.\n\n✅ SUCCESS: Your class gains a +5 bonus to your very next attack roll. This is especially powerful for cross-continental attacks where you need an Aircraft Carrier.\n\n❌ FAIL: The missile is intercepted. Unit consumed, no effect.'
+    },
+    {
+      q: 'What does Cyber Attack do?',
+      a: '💻 Cyber Attack costs $450 and targets another class. It has a 50% success rate.\n\n✅ SUCCESS: You steal up to $800 from the target\'s treasury. That gold moves directly to your empire.\n\n❌ FAIL: The target\'s firewall blocks the attack. Unit consumed, no gold stolen.\n\n✝️ IMMUNITY: Theocracy government blocks all Cyber Attacks.'
     },
     {
       q: 'Can we protect ourselves from special weapons?',
