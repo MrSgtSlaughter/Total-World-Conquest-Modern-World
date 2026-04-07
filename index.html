@@ -487,6 +487,17 @@ body{background:var(--bg);color:var(--green);font-family:var(--font);overflow:hi
         <button class="retro-btn sm" style="width:100%;background:#1a0a2a;color:#c084fc;border-color:#c084fc" onclick="openFAQ()">VIEW FAQ</button>
       </div>
 
+      <!-- CONTRIBUTIONS INBOX -->
+      <div class="retro-panel" id="contrib-panel">
+        <h2 style="color:#ffd700">📬 CONTRIBUTIONS <span id="contrib-badge" style="background:#ff3333;color:#fff;font-size:.65em;padding:1px 6px;border-radius:3px;margin-left:4px;display:none">0</span></h2>
+        <div style="font-size:.7em;color:#888;margin-bottom:8px">Student unit purchases from the Geopolitics Sim</div>
+        <div id="contrib-list" style="max-height:280px;overflow-y:auto;font-size:.75em"></div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="retro-btn sm secondary" style="flex:1" onclick="loadContributions()">🔄 REFRESH</button>
+          <button class="retro-btn sm danger" onclick="clearApprovedContributions()">🗑️ Clear Approved</button>
+        </div>
+      </div>
+
       <!-- SAVE / EXPORT -->
       <div class="retro-panel">
         <h2>💾 DATA</h2>
@@ -1576,6 +1587,201 @@ function importFromText(){
 // legacy alias
 function importGame(){ openImportModal(); }
 
+// ═══════════════════════════════════════════════════════════════
+// CONTRIBUTIONS SYSTEM — reads from Geopolitics Sim via Firebase
+// Path: twc_contributions/{period}/{key} = {name,period,unit_id,unit_name,emoji,price,status,timestamp}
+// ═══════════════════════════════════════════════════════════════
+const CONTRIB_PATH = 'twc_contributions';
+
+// Map Empire Clicker unit IDs to TWC UNITS keys
+const CONTRIB_UNIT_MAP = {
+  'ranger':      'AIRBORNE_RANGER',
+  'tank':        'TANK',
+  'bomber':      'BOMBER',
+  'carrier':     'AIRCRAFT_CARRIER',
+  'submarine':   'SUBMARINE',
+  'blockade':    'BLOCKADE',
+  'cyberattack': 'CYBER_ATTACK',
+  'civilunrest': 'CIVIL_UNREST',
+  'icbm':        'ICBM',
+  'nuke':        'NUCLEAR_WARHEAD',
+};
+
+// Period name → state key
+const CONTRIB_PERIOD_MAP = {
+  '1st':'1st','2nd':'2nd','5th':'5th','6th':'6th',
+  'Period 1':'1st','Period 2':'2nd','Period 5':'5th','Period 6':'6th',
+  '1':'1st','2':'2nd','5':'5th','6':'6th',
+};
+
+let _contribData = {}; // cached: {period: {key: item}}
+let _contribPollTimer = null;
+
+async function loadContributions(){
+  const url = `${FB_DB_URL}/${CONTRIB_PATH}.json?auth=${FB_API_KEY}`;
+  try {
+    const r = await fetch(url);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    _contribData = data || {};
+    renderContributions();
+  } catch(e) {
+    document.getElementById('contrib-list').innerHTML =
+      `<div style="color:#ff6666;padding:8px">❌ Could not load: ${e.message}</div>`;
+  }
+}
+
+function renderContributions(){
+  const listEl = document.getElementById('contrib-list');
+  const badge  = document.getElementById('contrib-badge');
+  if(!listEl) return;
+
+  // Flatten all contributions across all periods
+  let allItems = [];
+  for(const [period, items] of Object.entries(_contribData)){
+    if(!items || typeof items !== 'object') continue;
+    for(const [key, item] of Object.entries(items)){
+      if(!item || !item.unit_id) continue;
+      allItems.push({...item, _period: period, _key: key});
+    }
+  }
+
+  // Sort: pending first, then by timestamp desc
+  allItems.sort((a,b)=>{
+    if(a.status==='pending' && b.status!=='pending') return -1;
+    if(a.status!=='pending' && b.status==='pending') return 1;
+    return (b.timestamp||0)-(a.timestamp||0);
+  });
+
+  const pendingCount = allItems.filter(i=>i.status==='pending').length;
+  badge.textContent = pendingCount;
+  badge.style.display = pendingCount>0 ? 'inline' : 'none';
+
+  if(allItems.length===0){
+    listEl.innerHTML = '<div style="color:#444;padding:8px;text-align:center">No contributions yet</div>';
+    return;
+  }
+
+  const clsPeriods = {'1st':'1st','2nd':'2nd','5th':'5th','6th':'6th'};
+  let html = '';
+  // Group by period
+  for(const [clsKey, clsLabel] of Object.entries(clsPeriods)){
+    const items = allItems.filter(i=>(CONTRIB_PERIOD_MAP[i.period]||i.period)===clsKey);
+    if(!items.length) continue;
+    const cl = CLS[clsKey];
+    html += `<div style="color:${cl.color};font-weight:700;padding:4px 0 2px;font-size:.85em;border-bottom:1px dashed #1a3a1a">${cl.emoji} ${cl.name}</div>`;
+    for(const item of items){
+      const isPending = item.status==='pending';
+      const twcKey = CONTRIB_UNIT_MAP[item.unit_id];
+      const unit = twcKey ? UNITS[twcKey] : null;
+      const unitLabel = unit ? unit.name : (item.unit_name||item.unit_id);
+      const ts = item.timestamp ? new Date(item.timestamp).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}) : '';
+      html += `<div style="display:flex;align-items:center;gap:6px;padding:5px 4px;border-bottom:1px solid #111;${isPending?'':'opacity:.45'}">
+        <span style="font-size:1.1em">${item.emoji||'🎖️'}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;color:${isPending?'var(--green)':'#555'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.name||'?'}</div>
+          <div style="color:#888;font-size:.85em">${unitLabel} · $${item.price||0}</div>
+        </div>
+        <div style="font-size:.75em;color:#555;text-align:right">${ts}<br>
+          ${isPending
+            ? `<button class="retro-btn sm" style="padding:2px 6px;font-size:.85em;margin-top:2px" onclick="applyContribution('${item._period}','${item._key}')">✅</button>`
+            : `<span style="color:#2ea44f">✓ Applied</span>`
+          }
+        </div>
+      </div>`;
+    }
+  }
+  listEl.innerHTML = html || '<div style="color:#444;padding:8px;text-align:center">No contributions yet</div>';
+}
+
+async function applyContribution(period, key){
+  const cls = CONTRIB_PERIOD_MAP[period] || period;
+  const item = (_contribData[period]||{})[key];
+  if(!item){ alert('Contribution not found.'); return; }
+  if(item.status === 'approved'){ alert('Already applied!'); return; }
+
+  const twcKey = CONTRIB_UNIT_MAP[item.unit_id];
+  if(!twcKey){ alert(`Unknown unit: ${item.unit_id}`); return; }
+  const u = UNITS[twcKey];
+  if(!u){ alert(`Unit not in TWC: ${twcKey}`); return; }
+
+  // Apply to class inventory (same logic as buyUnit but free — already paid in Clicker)
+  const inv = S.inv[cls];
+  const cur = inv[twcKey]||0;
+  if(!u.stack && cur>=1){ alert(`${CLS[cls].name} already has a ${u.name}! Cannot apply duplicate.`); return; }
+  if(u.max && cur>=u.max){ alert(`${CLS[cls].name} is at max ${u.name} (${u.max}).`); return; }
+
+  // Ranger/Tank roll on deploy
+  if(twcKey==='AIRBORNE_RANGER'){
+    const roll=roll100();
+    if(roll<=90){
+      inv[twcKey]=(cur||0)+1;
+      saveState(); renderTeacherUI();
+      playCutscene('ranger',true);
+      addLog(`🪂 ${item.name} (${CLS[cls].name}) contributed Airborne Ranger — SUCCESS! (roll:${roll}/90)`);
+    } else {
+      saveState(); renderTeacherUI();
+      playCutscene('ranger',false);
+      addLog(`🪂 ${item.name} (${CLS[cls].name}) Ranger contribution LOST on deploy. (roll:${roll}/90)`);
+    }
+  } else if(twcKey==='TANK'){
+    const roll=roll100();
+    if(roll<=85){
+      inv[twcKey]=(cur||0)+1;
+      saveState(); renderTeacherUI();
+      playCutscene('tank',true);
+      addLog(`🚗 ${item.name} (${CLS[cls].name}) contributed Tank — SUCCESS! (roll:${roll}/85)`);
+    } else {
+      saveState(); renderTeacherUI();
+      playCutscene('tank',false);
+      addLog(`🚗 ${item.name} (${CLS[cls].name}) Tank contribution LOST on deploy. (roll:${roll}/85)`);
+    }
+  } else {
+    // All other units go directly to inventory (deployed via special weapons panel)
+    inv[twcKey]=(cur||0)+1;
+    saveState(); renderTeacherUI();
+    addLog(`🎖️ ${item.name} (${CLS[cls].name}) contributed ${u.name} — added to inventory!`);
+    alert(`✅ ${u.name} added to ${CLS[cls].name}'s inventory!\n\nContributed by: ${item.name}`);
+  }
+
+  // Mark approved in Firebase
+  const url = `${FB_DB_URL}/${CONTRIB_PATH}/${period}/${key}.json?auth=${FB_API_KEY}`;
+  await fetch(url, {
+    method:'PATCH',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({status:'approved', approvedAt: new Date().toISOString()})
+  }).catch(()=>{});
+
+  // Update local cache
+  if(_contribData[period] && _contribData[period][key]){
+    _contribData[period][key].status = 'approved';
+  }
+  renderContributions();
+}
+
+async function clearApprovedContributions(){
+  if(!confirm('Remove all approved contributions from the list?')) return;
+  // Delete approved entries from Firebase
+  const promises = [];
+  for(const [period, items] of Object.entries(_contribData)){
+    if(!items) continue;
+    for(const [key, item] of Object.entries(items)){
+      if(item && item.status==='approved'){
+        const url = `${FB_DB_URL}/${CONTRIB_PATH}/${period}/${key}.json?auth=${FB_API_KEY}`;
+        promises.push(fetch(url, {method:'DELETE'}).catch(()=>{}));
+      }
+    }
+  }
+  await Promise.all(promises);
+  await loadContributions();
+}
+
+function startContribPoll(){
+  if(_contribPollTimer) clearInterval(_contribPollTimer);
+  loadContributions();
+  _contribPollTimer = setInterval(loadContributions, 30000);
+}
+
 function doReset(){
   for(const k of Object.values(SK)) localStorage.removeItem(k);
   S=loadState();
@@ -1805,6 +2011,7 @@ function goTeacher(){
   initMap().then(()=>{
     renderTeacherUI();
     startBlockadeTicker();
+    startContribPoll();
   });
 }
 
