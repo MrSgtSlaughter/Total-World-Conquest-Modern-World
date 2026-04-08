@@ -824,19 +824,49 @@ function loadFromFirebase(cb){
   .catch(()=>{ if(cb) cb(null); });
 }
 
+function toArr(val){
+  // Firebase converts JS arrays to objects with numeric keys — convert back
+  if(Array.isArray(val)) return val;
+  if(val === null || val === undefined) return [];
+  if(typeof val === 'object'){
+    const keys = Object.keys(val);
+    // If all keys are numeric strings, treat as array
+    if(keys.length > 0 && keys.every(k => /^\d+$/.test(k))){
+      const arr = [];
+      keys.forEach(k => arr[parseInt(k)] = val[k]);
+      return arr.filter(x => x !== undefined);
+    }
+  }
+  return [];
+}
+
+function toObj(val){
+  // Firebase sometimes returns null for empty objects — default to {}
+  if(val === null || val === undefined) return {};
+  return val;
+}
+
 function applyFirebaseState(data){
   if(!data) return;
-  // Merge into localStorage and live state
-  if(data.own  !== undefined) localStorage.setItem(SK.OWN,  JSON.stringify(data.own));
-  if(data.gold !== undefined) localStorage.setItem(SK.GOLD, JSON.stringify(data.gold));
-  if(data.inv  !== undefined) localStorage.setItem(SK.INV,  JSON.stringify(data.inv));
-  if(data.govt !== undefined) localStorage.setItem(SK.GOVT, JSON.stringify(data.govt));
-  if(data.skip !== undefined) localStorage.setItem(SK.SKIP, JSON.stringify(data.skip));
-  if(data.nuked!== undefined) localStorage.setItem(SK.NUKED,JSON.stringify(data.nuked));
-  if(data.icbm !== undefined) localStorage.setItem(SK.ICBM_BONUS, JSON.stringify(data.icbm));
-  if(data.log  !== undefined) localStorage.setItem(SK.LOG,  JSON.stringify(data.log));
-  if(data.blok !== undefined) localStorage.setItem(SK.BLOK, JSON.stringify(data.blok));
-  if(data.tax  !== undefined) localStorage.setItem(SK.TAX,  JSON.stringify(data.tax));
+  // Convert and store — handle Firebase array/null quirks
+  if(data.own  !== undefined) localStorage.setItem(SK.OWN,  JSON.stringify(toObj(data.own)));
+  if(data.gold !== undefined) localStorage.setItem(SK.GOLD, JSON.stringify(toObj(data.gold)));
+  if(data.govt !== undefined) localStorage.setItem(SK.GOVT, JSON.stringify(toObj(data.govt)));
+  if(data.skip !== undefined) localStorage.setItem(SK.SKIP, JSON.stringify(toObj(data.skip)));
+  if(data.blok !== undefined) localStorage.setItem(SK.BLOK, JSON.stringify(toObj(data.blok)));
+  if(data.tax  !== undefined) localStorage.setItem(SK.TAX,  JSON.stringify(toObj(data.tax)));
+  if(data.icbm !== undefined) localStorage.setItem(SK.ICBM_BONUS, JSON.stringify(toObj(data.icbm)));
+  if(data.nuked!== undefined) localStorage.setItem(SK.NUKED,JSON.stringify(toArr(data.nuked)));
+  if(data.log  !== undefined) localStorage.setItem(SK.LOG,  JSON.stringify(toArr(data.log)));
+  // inv has nested objects — each period's inventory needs toObj treatment
+  if(data.inv !== undefined){
+    const inv = toObj(data.inv);
+    for(const cls of ['1st','2nd','5th','6th']){
+      if(!inv[cls]) inv[cls] = {};
+      else inv[cls] = toObj(inv[cls]);
+    }
+    localStorage.setItem(SK.INV, JSON.stringify(inv));
+  }
   S = loadState();
   return data.published;
 }
