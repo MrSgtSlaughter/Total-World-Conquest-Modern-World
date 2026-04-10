@@ -597,15 +597,15 @@ const GOVTS = {
 
 const UNITS = {
   'AIRBORNE_RANGER':  { name:'Airborne Ranger',  icon:'<img src="ranger.png" class="unit-sprite" alt="Ranger">',           cost:100,  effect:'+1 attack roll',              stack:true,  max:null },
-  'TANK':             { name:'Tank',             icon:'<img src="tank.png" class="unit-sprite" alt="Tank">',             cost:200,  effect:'+2 attack roll (max 3)',       stack:true,  max:3    },
-  'BOMBER':           { name:'Bomber',           icon:'<img src="bomber.png" class="unit-sprite" alt="Bomber">',           cost:350,  effect:'Force enemy to lose 1 territory — goes unclaimed (70% success)', stack:false, max:1, special:'bomber'  },
-  'AIRCRAFT_CARRIER': { name:'Aircraft Carrier', icon:'<img src="aircraftcarrier.png" class="unit-sprite" alt="Carrier">', cost:500,  effect:'Attack any country without needing to border it (70% success)',   stack:false, max:1, special:'carrier' },
-  'SUBMARINE':        { name:'Submarine',        icon:'<img src="submarine.png" class="unit-sprite" alt="Submarine">', cost:400,  effect:'Roll attack dice twice, take the better result (75% success)',      stack:false, max:1, special:'sub'     },
-  'BLOCKADE':         { name:'Blockade',         icon:'<img src="blockade.png" class="unit-sprite" alt="Blockade">',   cost:300,  effect:'Target class cannot attack today (60% success)',                    stack:false, max:1, special:'blockade'},
-  'CYBER_ATTACK':     { name:'Cyber Attack',     icon:'<img src="cybarattack.png" class="unit-sprite" alt="Cyber">',   cost:450,  effect:'Steal up to $800 from enemy treasury (50% success)',               stack:false, max:1, special:'cyber'   },
-  'NUCLEAR_WARHEAD':  { name:'Nuclear Warhead',  icon:'<img src="nuke.png" class="unit-sprite" alt="Nuke">',               cost:2000, effect:'DESTROYS territory forever + wipes all enemy inventory (40% success)', stack:false, max:1, special:'nuke'   },
-  'ICBM':             { name:'ICBM',             icon:'<img src="ICBM.png" class="unit-sprite" alt="ICBM">',               cost:800,  effect:'+5 bonus to cross-cont. attack',stack:false,max:1, special:'icbm'   },
-  'CIVIL_UNREST':     { name:'Civil Unrest',     icon:'<img src="civilunrest.png" class="unit-sprite" alt="Civil Unrest">',cost:700,  effect:'Target class loses 2 turns',   stack:false, max:1, special:'unrest' },
+  'TANK':             { name:'Tank',             icon:'<img src="tank.png" class="unit-sprite" alt="Tank">',             cost:200,  effect:'+2 attack roll (max 3)',       stack:true,  max:null    },
+  'BOMBER':           { name:'Bomber',           icon:'<img src="bomber.png" class="unit-sprite" alt="Bomber">',           cost:350,  effect:'Force enemy to lose 1 territory — goes unclaimed (70% success)', stack:true, max:null, special:'bomber'  },
+  'AIRCRAFT_CARRIER': { name:'Aircraft Carrier', icon:'<img src="aircraftcarrier.png" class="unit-sprite" alt="Carrier">', cost:500,  effect:'Attack any country without needing to border it (70% success)',   stack:true, max:null, special:'carrier' },
+  'SUBMARINE':        { name:'Submarine',        icon:'<img src="submarine.png" class="unit-sprite" alt="Submarine">', cost:400,  effect:'Roll attack dice twice, take the better result (75% success)',      stack:true, max:null, special:'sub'     },
+  'BLOCKADE':         { name:'Blockade',         icon:'<img src="blockade.png" class="unit-sprite" alt="Blockade">',   cost:300,  effect:'Target class cannot attack today (60% success)',                    stack:true, max:null, special:'blockade'},
+  'CYBER_ATTACK':     { name:'Cyber Attack',     icon:'<img src="cybarattack.png" class="unit-sprite" alt="Cyber">',   cost:450,  effect:'Steal up to $800 from enemy treasury (50% success)',               stack:true, max:null, special:'cyber'   },
+  'NUCLEAR_WARHEAD':  { name:'Nuclear Warhead',  icon:'<img src="nuke.png" class="unit-sprite" alt="Nuke">',               cost:2000, effect:'DESTROYS territory forever + wipes all enemy inventory (40% success)', stack:true, max:null, special:'nuke'   },
+  'ICBM':             { name:'ICBM',             icon:'<img src="ICBM.png" class="unit-sprite" alt="ICBM">',               cost:800,  effect:'+5 bonus to cross-cont. attack',stack:true,max:null, special:'icbm'   },
+  'CIVIL_UNREST':     { name:'Civil Unrest',     icon:'<img src="civilunrest.png" class="unit-sprite" alt="Civil Unrest">',cost:700,  effect:'Target class loses 2 turns',   stack:true, max:null, special:'unrest' },
 };
 
 // 5 Themes: [Location, Place, H-E Interaction, Movement, Region]
@@ -1738,8 +1738,8 @@ async function applyContribution(period, key){
   // Apply to class inventory (same logic as buyUnit but free — already paid in Clicker)
   const inv = S.inv[cls];
   const cur = inv[twcKey]||0;
-  if(!u.stack && cur>=1){ alert(`${CLS[cls].name} already has a ${u.name}! Cannot apply duplicate.`); return; }
-  if(u.max && cur>=u.max){ alert(`${CLS[cls].name} is at max ${u.name} (${u.max}).`); return; }
+  // stack limits removed for contributions
+  // max limits removed for contributions
 
   // Ranger/Tank roll on deploy
   if(twcKey==='AIRBORNE_RANGER'){
