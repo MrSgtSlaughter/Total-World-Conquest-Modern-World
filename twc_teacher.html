@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TWC Command Center — Teacher Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c08;--panel:#0d1410;--border:#1e2e1e;
+  --green:#3a7d44;--lime:#6aab3a;--gold:#d4a017;
+  --red:#cc2200;--text:#c8d8c0;--dim:rgba(200,216,192,0.35);
+  --mono:'Share Tech Mono',monospace;--head:'Orbitron',sans-serif;
+  --p1:#cc3333;--p2:#33aa44;--p5:#ddbb22;--p6:#3377cc;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;min-height:100vh;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(58,125,68,.05) 39px,rgba(58,125,68,.05) 40px),
+  repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(58,125,68,.03) 39px,rgba(58,125,68,.03) 40px);}
+
+/* ── PIN ── */
+#pin-gate{position:fixed;inset:0;background:rgba(0,0,0,.97);display:flex;align-items:center;justify-content:center;z-index:9999}
+#pin-box{background:var(--panel);border:2px solid var(--gold);padding:40px;text-align:center;max-width:340px;width:100%}
+#pin-box h2{font-family:var(--head);font-size:18px;letter-spacing:4px;color:var(--gold);margin-bottom:6px}
+#pin-box p{font-size:11px;color:var(--dim);margin-bottom:20px;letter-spacing:1px}
+#pin-input{width:100%;padding:12px;font-family:var(--mono);font-size:22px;letter-spacing:8px;text-align:center;
+  background:#0a0f0a;border:1px solid var(--green);color:var(--lime);outline:none;margin-bottom:14px}
+#pin-err{color:var(--red);font-size:11px;min-height:16px}
+
+/* ── TOP BAR ── */
+#topbar{background:linear-gradient(180deg,#0e1a0e,#080c08);border-bottom:2px solid var(--green);
+  padding:10px 20px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(58,125,68,.25)}
+#topbar h1{font-family:var(--head);font-size:15px;letter-spacing:4px;color:var(--gold)}
+#topbar .sub{font-size:9px;color:var(--dim);letter-spacing:2px;margin-top:2px}
+#clock{font-size:11px;color:var(--lime);letter-spacing:2px}
+
+/* ── BUTTONS ── */
+.btn{background:transparent;border:1px solid var(--gold);color:var(--gold);font-family:var(--head);
+  font-size:10px;letter-spacing:3px;padding:8px 18px;cursor:pointer;transition:all .2s}
+.btn:hover{background:rgba(212,160,23,.12)}
+.btn.green{border-color:var(--lime);color:var(--lime)}
+.btn.green:hover{background:rgba(106,171,58,.12)}
+.btn.red{border-color:var(--red);color:var(--red)}
+.btn.red:hover{background:rgba(204,34,0,.12)}
+.btn:disabled{opacity:.25;cursor:default}
+
+/* ── LAYOUT ── */
+#main{padding:16px 20px;max-width:1400px;margin:0 auto}
+
+/* ── PERIOD TABS ── */
+#ptabs{display:flex;gap:8px;margin-bottom:16px}
+.ptab{flex:1;padding:10px 6px;font-family:var(--head);font-size:10px;letter-spacing:2px;text-align:center;
+  cursor:pointer;border:2px solid;background:transparent;transition:all .2s;position:relative}
+.ptab[data-p="1st"]{border-color:var(--p1);color:var(--p1)}
+.ptab[data-p="2nd"]{border-color:var(--p2);color:var(--p2)}
+.ptab[data-p="5th"]{border-color:var(--p5);color:var(--p5)}
+.ptab[data-p="6th"]{border-color:var(--p6);color:var(--p6)}
+.ptab.active[data-p="1st"]{background:rgba(204,51,51,.15)}
+.ptab.active[data-p="2nd"]{background:rgba(51,170,68,.15)}
+.ptab.active[data-p="5th"]{background:rgba(221,187,34,.15)}
+.ptab.active[data-p="6th"]{background:rgba(51,119,204,.15)}
+.pbadge{position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;font-size:9px;
+  border-radius:50%;width:16px;height:16px;display:none;align-items:center;justify-content:center}
+
+/* ── GRID ── */
+#cgrid{display:grid;grid-template-columns:1fr 320px;gap:16px}
+@media(max-width:880px){#cgrid{grid-template-columns:1fr}}
+
+/* ── PANELS ── */
+.panel{background:var(--panel);border:1px solid var(--border);margin-bottom:14px}
+.ph{background:rgba(58,125,68,.08);border-bottom:1px solid var(--border);padding:8px 14px;
+  display:flex;align-items:center;justify-content:space-between}
+.ph h3{font-family:var(--head);font-size:10px;letter-spacing:3px;color:var(--gold)}
+.pb{padding:14px}
+
+/* ── TOTALS ── */
+#totals{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.chip{border:1px solid var(--border);padding:3px 10px;font-size:10px;letter-spacing:1px}
+
+/* ── INV GRID ── */
+#igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.ic{background:#0a0f0a;border:1px solid var(--border);padding:10px;text-align:center;transition:border-color .2s}
+.ic:hover{border-color:var(--green)}
+.ie{font-size:26px;display:block;margin-bottom:5px;line-height:1}
+.in{font-family:var(--head);font-size:8px;letter-spacing:1px;margin-bottom:2px}
+.id_{font-size:9px;color:var(--dim);margin-bottom:7px;line-height:1.3;min-height:24px}
+.ictr{display:flex;align-items:center;justify-content:center;margin-bottom:7px}
+.ibtn{width:26px;height:26px;background:rgba(58,125,68,.2);border:1px solid var(--green);
+  color:var(--lime);font-size:15px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.ibtn:hover{background:rgba(58,125,68,.5)}
+.ibtn.m{border-color:var(--red);color:var(--red);background:rgba(204,34,0,.1)}
+.ibtn.m:hover{background:rgba(204,34,0,.3)}
+.inum{width:38px;text-align:center;font-size:18px;font-weight:700;color:var(--lime);
+  background:transparent;border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  border-left:none;border-right:none;outline:none;padding:0;height:26px;font-family:var(--mono)}
+.use-btn{width:100%;padding:5px 0;font-family:var(--head);font-size:8px;letter-spacing:2px;
+  cursor:pointer;border:1px solid;background:transparent;transition:all .2s}
+.use-off{border-color:rgba(255,255,255,.1);color:rgba(255,255,255,.2);cursor:default}
+.use-on{border-color:var(--gold);color:var(--gold);animation:pg 2s ease-in-out infinite}
+.use-on:hover{background:rgba(212,160,23,.1)}
+@keyframes pg{0%,100%{box-shadow:0 0 0 rgba(212,160,23,0)}50%{box-shadow:0 0 8px rgba(212,160,23,.4)}}
+
+/* ── DEPLOY MODAL ── */
+#dm{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:500;align-items:center;justify-content:center}
+#dm.open{display:flex}
+#db{background:var(--panel);border:2px solid var(--gold);max-width:420px;width:95%;overflow:hidden}
+#dh{background:rgba(212,160,23,.1);border-bottom:1px solid var(--gold);padding:14px 18px;
+  font-family:var(--head);font-size:12px;letter-spacing:3px;color:var(--gold);
+  display:flex;justify-content:space-between;align-items:center}
+#dc{padding:20px}
+#de{font-size:50px;text-align:center;display:block;margin-bottom:8px}
+#dn{font-family:var(--head);font-size:15px;letter-spacing:2px;text-align:center;margin-bottom:3px}
+#dd{font-size:11px;color:var(--dim);text-align:center;margin-bottom:14px}
+#do{background:rgba(0,0,0,.3);border:1px solid var(--border);padding:10px;margin-bottom:14px;
+  font-size:11px;color:var(--dim);text-align:center;line-height:1.6}
+#dr{min-height:48px;text-align:center;font-family:var(--head);font-size:20px;letter-spacing:2px;
+  margin-bottom:14px;display:flex;align-items:center;justify-content:center}
+#dbtns{display:flex;gap:10px}
+#dbtns button{flex:1}
+
+/* ── CUTSCENE ── */
+#cs{display:none;position:fixed;inset:0;background:#000;z-index:800;flex-direction:column;align-items:center;justify-content:center}
+#cs.open{display:flex}
+#cs-video{width:100%;max-width:900px;max-height:70vh;object-fit:contain}
+#cs-result{margin-top:20px;font-family:var(--head);font-size:24px;letter-spacing:4px;
+  text-align:center;animation:pop .5s ease}
+#cs-sub{margin-top:8px;font-size:12px;color:var(--dim);letter-spacing:2px;text-align:center}
+#cs-close{margin-top:20px}
+@keyframes pop{from{transform:scale(.5);opacity:0}60%{transform:scale(1.1)}to{transform:scale(1);opacity:1}}
+@keyframes shake{0%{transform:translateX(-8px)}25%{transform:translateX(8px)}50%{transform:translateX(-5px)}75%{transform:translateX(5px)}to{transform:translateX(0)}}
+
+/* ── BCB INBOX ── */
+#bcbl{display:flex;flex-direction:column;gap:7px}
+.bcbc{background:#0a0f0a;border:1px solid rgba(106,171,58,.3);padding:8px 10px;
+  display:flex;align-items:center;gap:8px}
+.bcbc.dep{border-color:rgba(255,255,255,.08);opacity:.4}
+.bcb-em{font-size:20px;flex-shrink:0}
+.bcb-inf{flex:1;min-width:0}
+.bcb-nm{font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bcb-mt{font-size:9px;color:var(--dim);letter-spacing:1px}
+.bcb-btn{flex-shrink:0;padding:4px 8px;font-family:var(--head);font-size:8px;letter-spacing:2px;
+  border:1px solid var(--lime);color:var(--lime);background:transparent;cursor:pointer;transition:all .2s}
+.bcb-btn:hover{background:rgba(106,171,58,.2)}
+.bcb-btn:disabled{opacity:.3;cursor:default}
+.bem{font-size:10px;color:var(--dim);text-align:center;padding:16px;letter-spacing:1px}
+
+/* ── SAVE BAR ── */
+#sbar{position:sticky;bottom:0;background:#0a110a;border-top:1px solid var(--green);
+  padding:8px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;z-index:50}
+#smsg{font-size:10px;color:var(--lime);letter-spacing:1px;flex:1}
+
+/* ── SUMMARY ── */
+.srow{border-left:3px solid;padding:5px 10px;background:rgba(0,0,0,.2);cursor:pointer;margin-bottom:4px}
+
+/* ── MONARCHY BLOCK ── */
+#mb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:600;align-items:center;justify-content:center}
+#mb.open{display:flex}
+#mbox{background:var(--panel);border:2px solid var(--gold);max-width:380px;width:95%;padding:28px;text-align:center}
+#mbox .crown{font-size:44px;margin-bottom:10px}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.sp{animation:spin .7s linear infinite;display:inline-block}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--green)}
+</style>
+</head>
+<body>
+
+<!-- PIN GATE -->
+<div id="pin-gate">
+  <div id="pin-box">
+    <h2>⚔️ TWC COMMAND</h2>
+    <p>TEACHER ACCESS — ENTER PIN</p>
+    <input id="pin-input" type="password" maxlength="6" placeholder="• • • •" autocomplete="off">
+    <div id="pin-err"></div><br>
+    <button class="btn" onclick="checkPin()">AUTHENTICATE</button>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div><h1>⚔️ TWC COMMAND CENTER</h1><div class="sub">TEACHER PANEL · TOTAL WORLD CONQUEST</div></div>
+  <div id="clock">──</div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="ptabs">
+    <button class="ptab active" data-p="1st" onclick="switchP('1st')"><span class="pbadge" id="b1st"></span>1ST HOUR</button>
+    <button class="ptab" data-p="2nd" onclick="switchP('2nd')"><span class="pbadge" id="b2nd"></span>2ND HOUR</button>
+    <button class="ptab" data-p="5th" onclick="switchP('5th')"><span class="pbadge" id="b5th"></span>5TH HOUR</button>
+    <button class="ptab" data-p="6th" onclick="switchP('6th')"><span class="pbadge" id="b6th"></span>6TH HOUR</button>
+  </div>
+  <div id="totals"></div>
+  <div id="cgrid">
+    <div>
+      <div class="panel">
+        <div class="ph">
+          <h3 id="inv-title">📦 1ST HOUR — INVENTORY</h3>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span id="pdot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--p1)"></span>
+            <button class="btn green" style="padding:5px 12px;font-size:8px" onclick="saveAndPush()">💾 SAVE + 📡 PUSH</button>
+          </div>
+        </div>
+        <div class="pb"><div id="igrid"></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <div class="ph">
+          <h3>🪂 BCB RANGER INBOX</h3>
+          <button onclick="loadBCB()" style="background:none;border:none;color:var(--lime);cursor:pointer;font-size:13px"><span id="bri">↻</span></button>
+        </div>
+        <div class="pb" style="padding:10px"><div id="bcbl"><div class="bem">Loading...</div></div></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><h3>📊 ALL PERIODS</h3></div>
+        <div class="pb" style="padding:10px"><div id="sumgrid"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DEPLOY MODAL -->
+<div id="dm">
+  <div id="db">
+    <div id="dh"><span id="dt">DEPLOY UNIT</span><button onclick="closeDM()" style="background:none;border:none;color:var(--dim);font-size:16px;cursor:pointer">✕</button></div>
+    <div id="dc">
+      <span id="de">🪖</span>
+      <div id="dn"></div><div id="dd"></div>
+      <div id="do"></div>
+      <div id="dr"></div>
+      <div id="dbtns">
+        <button class="btn green" id="roll-btn" onclick="rollDeploy()">🎲 ROLL ODDS</button>
+        <button class="btn" onclick="closeDM()">CANCEL</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CUTSCENE OVERLAY -->
+<div id="cs">
+  <video id="cs-video" playsinline></video>
+  <div id="cs-result"></div>
+  <div id="cs-sub"></div>
+  <button class="btn" id="cs-close" onclick="closeCS()">CONTINUE ▶</button>
+</div>
+
+<!-- MONARCHY BLOCK MODAL -->
+<div id="mb">
+  <div id="mbox">
+    <div class="crown">👑</div>
+    <div style="font-family:var(--head);font-size:14px;letter-spacing:3px;color:var(--gold);margin-bottom:10px">MONARCHY IMMUNE</div>
+    <div id="mb-msg" style="font-size:12px;color:var(--dim);line-height:1.6;margin-bottom:20px"></div>
+    <button class="btn" onclick="document.getElementById('mb').classList.remove('open')">UNDERSTOOD</button>
+  </div>
+</div>
+
+<!-- SAVE BAR -->
+<div id="sbar">
+  <span id="smsg">Ready.</span>
+  <button class="btn green" style="padding:5px 14px;font-size:8px" onclick="saveAndPush()">💾 SAVE + 📡 PUSH TO STUDENTS</button>
+  <button class="btn" style="padding:5px 14px;font-size:8px" onclick="loadBCB()">↻ REFRESH</button>
+</div>
+
+<script>
+/* ═══ CONFIG ═══ */
+const PIN='1234'; // ← CHANGE THIS
+const FB='https://minigolf-fd9ea-default-rtdb.firebaseio.com';
+const SAVE_KEY='twc_cmd_inv_v3';
+const PERIODS=['1st','2nd','5th','6th'];
+const PCOLORS={'1st':'var(--p1)','2nd':'var(--p2)','5th':'var(--p5)','6th':'var(--p6)'};
+const PDOTS={'1st':'#cc3333','2nd':'#33aa44','5th':'#ddbb22','6th':'#3377cc'};
+
+/* ═══ STORE ITEMS ═══ */
+const STORE=[
+  {id:'ranger',    n:'Airborne Ranger',  e:'🪖', d:'+1 attack roll',                       odds:null, vs:'rangerssuccess.mp4', vf:'rangerfail.mp4'},
+  {id:'tank',      n:'Tank',             e:'🛡️', d:'+2 attack roll (max 3)',                odds:null, vs:'tanksuccess.mp4',   vf:'tankfail.mp4'},
+  {id:'blockade',  n:'Blockade',         e:'🚧', d:'Target class cannot attack today',       odds:60,   vs:'blockadesuccessul.mp4', vf:'blockadeunsuccessul.mp4'},
+  {id:'bomber',    n:'Bomber',           e:'✈️', d:'Force enemy to lose 1 territory',        odds:70,   vs:'bombsuccess.mp4',   vf:'bombfail.mp4'},
+  {id:'submarine', n:'Submarine',        e:'🔱', d:'Roll attack dice twice, take better',    odds:75,   vs:'subsuccess.mp4',    vf:'subfailure.mp4'},
+  {id:'cyberattack',n:'Cyber Attack',    e:'💻', d:'Steal up to $800 from enemy',            odds:50,   vs:'cybersuccess.mp4',  vf:'cyberfail.mp4'},
+  {id:'carrier',   n:'Aircraft Carrier', e:'🚢', d:'Attack without bordering',               odds:70,   vs:'carriersuccess.mp4',vf:'carrierunsuccessful.mp4'},
+  {id:'civilunrest',n:'Civil Unrest',    e:'🔥', d:'Target class loses 2 turns (no Monarchy)',odds:null,vs:'civilunrestsuccess.mp4',vf:'civilunrestfailed.mp4'},
+  {id:'icbm',      n:'ICBM',            e:'🚀', d:'+5 bonus to cross-continent attack',     odds:null, vs:'ICBMsuccess.mp4',   vf:'ICBMfailed.mp4'},
+  {id:'nuke',      n:'Nuclear Warhead',  e:'☢️', d:'DESTROYS territory forever',             odds:40,   vs:'nukesuccess.mp4',   vf:'nukefailed.mp4'},
+];
+
+/* ═══ STATE ═══ */
+let inv={};      // inv[period][item_id] = count
+let AP=PERIODS[0];
+let deployCtx=null;
+let csSuccess=false;
+let bcbRaw={};
+
+PERIODS.forEach(p=>{inv[p]={};STORE.forEach(s=>{inv[p][s.id]=0})});
+
+/* ═══ PIN ═══ */
+function checkPin(){
+  const v=document.getElementById('pin-input').value;
+  if(v===PIN){document.getElementById('pin-gate').style.display='none';init()}
+  else{
+    document.getElementById('pin-err').textContent='⛔ INVALID PIN';
+    document.getElementById('pin-input').value='';
+    document.getElementById('pin-input').style.borderColor='var(--red)';
+    setTimeout(()=>{document.getElementById('pin-err').textContent='';document.getElementById('pin-input').style.borderColor='var(--green)'},1500);
+  }
+}
+document.getElementById('pin-input').addEventListener('keydown',e=>{if(e.key==='Enter')checkPin()});
+
+/* ═══ INIT ═══ */
+function init(){
+  loadLocal();renderAll();loadBCB();
+  setInterval(updateClock,1000);updateClock();
+  setInterval(loadBCB,30000);
+}
+function updateClock(){
+  const n=new Date();
+  document.getElementById('clock').textContent=
+    n.toLocaleDateString('en-US',{weekday:'short'}).toUpperCase()+' '+
+    n.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+/* ═══ STORAGE ═══ */
+function loadLocal(){
+  try{
+    const r=localStorage.getItem(SAVE_KEY);
+    if(r){const s=JSON.parse(r);PERIODS.forEach(p=>{if(s[p])STORE.forEach(x=>{inv[p][x.id]=s[p][x.id]||0})});msg('✅ Inventory loaded.');}
+  }catch{}
+}
+async function saveAndPush(){
+  // Save local
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify(inv));}catch{}
+  msg('📡 Pushing to Firebase...');
+  // Build Firebase payload with period keys that match student polling
+  const payload={};
+  PERIODS.forEach(p=>{
+    const pKey=p.replace(/[^a-z0-9]/gi,'_');
+    payload[pKey]={};
+    STORE.forEach(s=>{payload[pKey][s.id]=inv[p][s.id]||0});
+  });
+  try{
+    const r=await fetch(FB+'/twc_teacher_inv.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(r.ok){msg('✅ Saved + pushed to all students! ('+new Date().toLocaleTimeString()+')');}
+    else{msg('⚠️ Saved locally but Firebase push failed ('+r.status+')');}
+  }catch(e){msg('⚠️ Saved locally, network error: '+e.message);}
+  renderSummary();renderTotals();
+}
+
+/* ═══ RENDER ═══ */
+function renderAll(){renderInventory();renderSummary();renderTotals()}
+
+function switchP(p){
+  AP=p;
+  document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.ptab[data-p="'+p+'"]').classList.add('active');
+  document.getElementById('inv-title').textContent='📦 '+p.toUpperCase()+' HOUR — INVENTORY';
+  document.getElementById('pdot').style.background=PDOTS[p];
+  renderInventory();renderTotals();
+}
+
+function renderInventory(){
+  const g=document.getElementById('igrid');g.innerHTML='';
+  STORE.forEach(item=>{
+    const c=inv[AP][item.id]||0;
+    const hasOdds=item.odds!==null;
+    const d=document.createElement('div');d.className='ic';
+    d.innerHTML=`
+      <span class="ie">${item.e}</span>
+      <div class="in">${item.n}</div>
+      <div class="id_">${item.d}</div>
+      <div class="ictr">
+        <button class="ibtn m" onclick="adj('${AP}','${item.id}',-1)">−</button>
+        <input class="inum" id="n-${item.id}" type="number" min="0" max="99" value="${c}"
+          onchange="setV('${AP}','${item.id}',this.value)">
+        <button class="ibtn" onclick="adj('${AP}','${item.id}',1)">+</button>
+      </div>
+      <button class="use-btn ${c>0?'use-on':'use-off'}" id="u-${item.id}"
+        ${c>0?`onclick="openDM('${AP}','${item.id}')"`:''}>
+        ${hasOdds?`🎲 USE (${item.odds}%)`:item.id==='civilunrest'?'🔥 DEPLOY':'▶ DEPLOY'}
+      </button>`;
+    g.appendChild(d);
+  });
+}
+
+function renderSummary(){
+  const g=document.getElementById('sumgrid');g.innerHTML='';
+  PERIODS.forEach(p=>{
+    const total=STORE.reduce((s,x)=>s+(inv[p][x.id]||0),0);
+    const items=STORE.filter(x=>(inv[p][x.id]||0)>0).map(x=>`${x.e}×${inv[p][x.id]}`).join(' ');
+    const row=document.createElement('div');
+    row.className='srow';row.style.borderColor=PDOTS[p];
+    row.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:2px">
+      <span style="font-family:var(--head);font-size:10px;letter-spacing:2px;color:${PDOTS[p]}">${p} HOUR</span>
+      <span style="font-size:10px;color:var(--dim)">${total} units</span></div>
+      <div style="font-size:11px;min-height:14px">${items||'<span style="opacity:.3;font-size:9px">— empty —</span>'}</div>`;
+    row.onclick=()=>switchP(p);
+    g.appendChild(row);
+  });
+}
+
+function renderTotals(){
+  const r=document.getElementById('totals');
+  r.innerHTML=PERIODS.map(p=>{
+    const t=STORE.reduce((s,x)=>s+(inv[p][x.id]||0),0);
+    return`<div class="chip" style="border-color:${PDOTS[p]};color:${PDOTS[p]}">${p.toUpperCase()}: ${t}</div>`;
+  }).join('');
+}
+
+/* ═══ INV CONTROLS ═══ */
+function adj(p,id,d){
+  inv[p][id]=Math.max(0,(inv[p][id]||0)+d);
+  syncCard(p,id);renderSummary();renderTotals();
+}
+function setV(p,id,v){
+  inv[p][id]=Math.max(0,Math.min(99,parseInt(v)||0));
+  syncCard(p,id);renderSummary();renderTotals();
+}
+function syncCard(p,id){
+  if(p!==AP)return;
+  const item=STORE.find(s=>s.id===id);
+  const c=inv[p][id]||0;
+  const ne=document.getElementById('n-'+id);
+  const ue=document.getElementById('u-'+id);
+  if(ne)ne.value=c;
+  if(ue){
+    if(c>0){
+      ue.className='use-btn use-on';
+      ue.setAttribute('onclick',`openDM('${p}','${id}')`);
+      ue.textContent=item.odds!==null?`🎲 USE (${item.odds}%)`:id==='civilunrest'?'🔥 DEPLOY':'▶ DEPLOY';
+    }else{
+      ue.className='use-btn use-off';ue.removeAttribute('onclick');
+      ue.textContent=item.odds!==null?`🎲 USE (${item.odds}%)`:id==='civilunrest'?'🔥 DEPLOY':'▶ DEPLOY';
+    }
+  }
+}
+
+/* ═══ DEPLOY MODAL ═══ */
+async function openDM(p,id){
+  const item=STORE.find(s=>s.id===id);if(!item)return;
+  // ── Monarchy immunity check for Civil Unrest ──
+  if(id==='civilunrest'){
+    const targetPeriod=await pickTargetPeriod(p);
+    if(!targetPeriod)return;
+    const isMonarchy=await checkMonarchyForPeriod(targetPeriod);
+    if(isMonarchy){
+      document.getElementById('mb-msg').innerHTML=
+        `<strong style="color:var(--gold)">${targetPeriod} Hour</strong> has a <strong>Monarchy</strong> government.<br><br>
+        Monarchies have strong central authority. Civil Unrest cannot disrupt their turns.<br><br>
+        Use a different weapon against this opponent.`;
+      document.getElementById('mb').classList.add('open');
+      return;
+    }
+  }
+  deployCtx={item,p};
+  document.getElementById('dt').textContent=`DEPLOY — ${p.toUpperCase()} HOUR`;
+  document.getElementById('de').textContent=item.e;
+  document.getElementById('dn').textContent=item.n;
+  document.getElementById('dd').textContent=item.d;
+  const ob=document.getElementById('do');
+  const rb=document.getElementById('roll-btn');
+  if(item.odds!==null){
+    ob.innerHTML=`SUCCESS ODDS: <strong style="color:var(--gold)">${item.odds}%</strong><br><span style="font-size:9px;opacity:.5">Click ROLL — outcome determines if cutscene plays success or fail video</span>`;
+    rb.textContent='🎲 ROLL ODDS';
+  }else{
+    ob.innerHTML=`<span style="color:var(--lime)">✅ GUARANTEED — No roll needed</span><br><span style="font-size:9px;opacity:.5">Adjust map manually · Click DEPLOY to use 1 unit + play cutscene</span>`;
+    rb.textContent='▶ DEPLOY';
+  }
+  document.getElementById('dr').textContent='';document.getElementById('dr').className='';
+  document.getElementById('dm').classList.add('open');
+}
+function closeDM(){document.getElementById('dm').classList.remove('open');deployCtx=null;}
+
+function rollDeploy(){
+  if(!deployCtx)return;
+  const{item,p}=deployCtx;
+  const c=inv[p][item.id]||0;
+  if(c<=0){msg('⚠️ No units!');closeDM();return;}
+  const rb=document.getElementById('roll-btn');
+  const dr=document.getElementById('dr');
+  let success=true;
+  if(item.odds!==null){
+    const roll=Math.random()*100;
+    success=roll<item.odds;
+    dr.className=success?'result-success':'result-fail';
+    dr.style.color=success?'var(--lime)':'var(--red)';
+    dr.textContent=success?`✅ SUCCESS! (${roll.toFixed(1)})`:`❌ FAILED (${roll.toFixed(1)})`;
+  }else{
+    dr.style.color='var(--lime)';dr.textContent='✅ DEPLOYED!';
+  }
+  csSuccess=success;
+  // consume unit
+  inv[p][item.id]=Math.max(0,c-1);
+  syncCard(p,item.id);renderSummary();renderTotals();
+  // save+push quietly
+  saveAndPush();
+  rb.textContent='▶ PLAY CUTSCENE';
+  rb.onclick=()=>{closeDM();playCutscene(item,success)};
+}
+
+/* ═══ CUTSCENE ═══ */
+function playCutscene(item,success){
+  const vid=document.getElementById('cs-video');
+  const vfile=success?item.vs:item.vf;
+  vid.src=vfile;
+  vid.style.objectFit='contain';
+  document.getElementById('cs-result').textContent='';
+  document.getElementById('cs-sub').textContent='';
+  document.getElementById('cs').classList.add('open');
+  vid.play().catch(()=>{});
+  vid.onended=()=>showCSResult(item,success);
+}
+function showCSResult(item,success){
+  const re=document.getElementById('cs-result');
+  const se=document.getElementById('cs-sub');
+  if(success){
+    re.style.animation='none';void re.offsetWidth;re.style.animation='pop .5s ease';
+    re.style.color='var(--lime)';
+    re.textContent='✅ '+item.n.toUpperCase()+' — SUCCESS!';
+    se.textContent='Adjust the map accordingly. 1 unit consumed.';
+  }else{
+    re.style.animation='none';void re.offsetWidth;re.style.animation='shake .4s ease';
+    re.style.color='var(--red)';
+    re.textContent='❌ '+item.n.toUpperCase()+' — FAILED';
+    se.textContent='Unit lost. No effect on map.';
+  }
+}
+function closeCS(){document.getElementById('cs').classList.remove('open');const v=document.getElementById('cs-video');v.pause();v.src='';}
+
+/* ═══ MONARCHY CHECK ═══ */
+async function checkMonarchyForPeriod(period){
+  // Pull leaderboard data and check if leading nation is Monarchy
+  try{
+    const url=`${FB}/twc_modern_scores.json?t=${Date.now()}`;
+    const r=await fetch(url);if(!r.ok)return false;
+    const d=await r.json();if(!d)return false;
+    // Find entries for this period and check gov
+    const entries=Object.values(d).filter(x=>x&&(x.period===period||x.period===period.replace('th','th')));
+    if(!entries.length)return false;
+    entries.sort((a,b)=>(b.score||0)-(a.score||0));
+    const top=entries[0];
+    return top&&top.gov&&top.gov.toLowerCase().includes('monarchy');
+  }catch{return false}
+}
+
+async function pickTargetPeriod(activePeriod){
+  // Simple: return the period you just need to check
+  // In practice teacher knows who they're targeting — prompt just confirms
+  const others=PERIODS.filter(p=>p!==activePeriod);
+  return new Promise(resolve=>{
+    const modal=document.createElement('div');
+    modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:700;display:flex;align-items:center;justify-content:center';
+    modal.innerHTML=`<div style="background:var(--panel);border:2px solid var(--gold);padding:28px;max-width:340px;width:95%;text-align:center">
+      <div style="font-family:var(--head);font-size:12px;letter-spacing:3px;color:var(--gold);margin-bottom:16px">TARGET PERIOD?</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${others.map(p=>`<button class="btn" style="border-color:${PDOTS[p]};color:${PDOTS[p]}" onclick="this.closest('div[style]').resolve('${p}')">${p} HOUR</button>`).join('')}
+        <button class="btn" onclick="this.closest('div[style]').resolve(null)">CANCEL</button>
+      </div></div>`;
+    modal.querySelector('div').resolve=(v)=>{document.body.removeChild(modal);resolve(v)};
+    // wire buttons
+    modal.querySelectorAll('button').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const v=btn.getAttribute('onclick').match(/'([^']+)'/)?.[1];
+        document.body.removeChild(modal);
+        resolve(v==='null'?null:v||null);
+      });
+    });
+    document.body.appendChild(modal);
+  });
+}
+
+/* ═══ BCB INBOX ═══ */
+async function loadBCB(){
+  const icon=document.getElementById('bri');icon.className='sp';
+  try{
+    const r=await fetch(`${FB}/bcb_rangers.json?t=${Date.now()}`);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    bcbRaw=await r.json()||{};
+    renderBCB();updateBadges();
+  }catch(e){
+    document.getElementById('bcbl').innerHTML=`<div class="bem">⚠️ ${e.message}</div>`;
+  }
+  icon.className='';
+}
+
+function renderBCB(){
+  const list=document.getElementById('bcbl');
+  let all=[];
+  Object.keys(bcbRaw).forEach(period=>{
+    const pd=bcbRaw[period];
+    if(!pd||typeof pd!=='object')return;
+    Object.keys(pd).forEach(key=>{
+      const entry=pd[key];
+      if(entry&&entry.name)all.push({...entry,_period:period,_key:key});
+    });
+  });
+  all.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+  if(!all.length){list.innerHTML='<div class="bem">No rangers submitted yet.</div>';return;}
+  list.innerHTML='';
+  const dep=getDeployed();
+  all.forEach(e=>{
+    const key=e._period+'_'+e._key;
+    const isDep=dep.has(key);
+    const ts=e.timestamp?new Date(e.timestamp).toLocaleTimeString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+    const stats=[e.str&&`S:${e.str}`,e.mrk&&`M:${e.mrk}`,e.agi&&`A:${e.agi}`].filter(Boolean).join(' ');
+    const c=document.createElement('div');c.className='bcbc'+(isDep?' dep':'');
+    c.innerHTML=`<div class="bcb-em">🪖</div>
+      <div class="bcb-inf">
+        <div class="bcb-nm">${e.name||'Unknown'}</div>
+        <div class="bcb-mt">${(e._period||'?').toUpperCase()} HOUR · ${ts}</div>
+        ${stats?`<div class="bcb-mt" style="color:var(--lime)">${stats}${e.warResult?' · WAR:'+e.warResult.toUpperCase():''}</div>`:''}
+      </div>
+      <button class="bcb-btn" ${isDep?'disabled':''} onclick="deployRanger('${key}','${e._period}','${e.name}')">
+        ${isDep?'✓ DONE':'DEPLOY'}
+      </button>`;
+    list.appendChild(c);
+  });
+}
+
+function getDeployed(){
+  try{return new Set(JSON.parse(localStorage.getItem('twc_deployed_v1')||'[]'))}catch{return new Set()}
+}
+function markDeployed(key){
+  const s=getDeployed();s.add(key);
+  localStorage.setItem('twc_deployed_v1',JSON.stringify([...s]));
+}
+function deployRanger(key,period,name){
+  const mp=PERIODS.find(p=>period.startsWith(p)||period===p)||(period.startsWith('1')?'1st':period.startsWith('2')?'2nd':period.startsWith('5')?'5th':'6th');
+  if(mp){
+    inv[mp]['ranger']=(inv[mp]['ranger']||0)+1;
+    if(mp===AP)syncCard(mp,'ranger');
+    renderSummary();renderTotals();
+    saveAndPush();
+    msg(`🪖 ${name} → ${mp} Hour! Ranger +1 pushed to students.`);
+  }else{msg(`⚠️ Could not match "${period}" — add ranger manually.`)}
+  markDeployed(key);renderBCB();
+}
+
+function updateBadges(){
+  const dep=getDeployed();
+  const counts={};PERIODS.forEach(p=>counts[p]=0);
+  Object.keys(bcbRaw).forEach(period=>{
+    const pd=bcbRaw[period];if(!pd||typeof pd!=='object')return;
+    const mp=PERIODS.find(p=>period.startsWith(p));
+    if(!mp)return;
+    Object.keys(pd).forEach(key=>{if(!dep.has(period+'_'+key))counts[mp]++});
+  });
+  PERIODS.forEach(p=>{
+    const b=document.getElementById('b'+p);if(!b)return;
+    b.textContent=counts[p]||'';
+    b.style.display=counts[p]>0?'flex':'none';
+  });
+}
+
+/* ═══ UTILS ═══ */
+function msg(t){document.getElementById('smsg').textContent=t}
+
+// keyboard shortcut: Enter on pin
+</script>
+</body>
+</html>
