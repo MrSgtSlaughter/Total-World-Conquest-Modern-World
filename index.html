@@ -494,6 +494,14 @@ body{background:var(--bg);color:var(--green);font-family:var(--font);overflow:hi
           <button class="retro-btn sm secondary" onclick="openImportModal()">📥 Import</button>
           <button class="retro-btn sm danger" onclick="openResetPin()">🗑️ Reset</button>
         </div>
+        <button class="retro-btn" style="width:100%;margin-top:8px;background:#001a00;color:#00ff88;border-color:#00ff88;font-size:.85em" onclick="publishToFirebase()">📡 PUBLISH TO STUDENTS</button>
+        <div id="fb-pub-msg" style="font-size:.72em;min-height:16px;margin-top:4px;color:#00ff88"></div>
+      </div>
+
+      <!-- BCB RANGER INBOX -->
+      <div class="retro-panel" id="bcb-panel">
+        <h2>🪂 BCB RANGER INBOX <button onclick="loadBCBInbox()" style="background:none;border:none;color:#ffd700;cursor:pointer;font-size:.9em;margin-left:6px" title="Refresh">↻</button></h2>
+        <div id="bcb-inbox-list"><div style="font-size:.75em;color:#555;padding:4px">Loading...</div></div>
       </div>
 
     </div><!-- /sidebar -->
@@ -882,7 +890,9 @@ function renderLB(){
   if(slb) slb.innerHTML=sh;
 }
 
+let _currentStudentCls = '1st';
 function renderStudentView(period){
+  _currentStudentCls = period;
   const cls=['1st','2nd','5th','6th'].find(c=>parseInt(c)===period)||'1st';
   const cl=CLS[cls];
   document.getElementById('s-subhead').textContent=`Period ${period} · ${cl.name} EMPIRE`;
@@ -2278,4 +2288,195 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const cl = document.getElementById('country-list-modal');
   if(cl) cl.addEventListener('click', e=>{ if(e.target===cl) cl.classList.remove('open'); });
 });
+
+
+// ═══════════════════════════════════════════════════════════════════
+// FIREBASE INTEGRATION
+// ═══════════════════════════════════════════════════════════════════
+const FB_URL = 'https://minigolf-fd9ea-default-rtdb.firebaseio.com';
+
+async function publishToFirebase(){
+  const msgEl = document.getElementById('fb-pub-msg');
+  msgEl.textContent = '📡 Publishing...';
+  const payload = {
+    own:   S.own,
+    gold:  S.gold,
+    inv:   S.inv,
+    govt:  S.govt,
+    blok:  S.blok,
+    skip:  S.skip,
+    nuked: S.nuked,
+    icbm:  S.icbm,
+    log:   S.log.slice(-30),
+    published: Date.now()
+  };
+  try {
+    const r = await fetch(FB_URL+'/twc_state.json', {
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if(r.ok){
+      msgEl.textContent = '✅ Published! '+new Date().toLocaleTimeString();
+      setTimeout(()=>msgEl.textContent='',5000);
+    } else {
+      msgEl.textContent = '⚠️ Firebase error '+r.status;
+    }
+  } catch(e){
+    msgEl.textContent = '⚠️ Network error: '+e.message;
+  }
+}
+
+// ── BCB RANGER INBOX ──
+let _bcbDeployed = new Set(JSON.parse(localStorage.getItem('twc_bcb_deployed')||'[]'));
+
+function saveBCBDeployed(){
+  localStorage.setItem('twc_bcb_deployed', JSON.stringify([..._bcbDeployed]));
+}
+
+async function loadBCBInbox(){
+  const el = document.getElementById('bcb-inbox-list');
+  if(!el) return;
+  el.innerHTML = '<div style="font-size:.75em;color:#555;padding:4px">↻ Loading...</div>';
+  try {
+    const r = await fetch(FB_URL+'/bcb_rangers.json?t='+Date.now());
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const raw = await r.json();
+    renderBCBInbox(raw||{});
+    updateBCBBadge(raw||{});
+  } catch(e){
+    el.innerHTML = '<div style="font-size:.72em;color:#cc2200;padding:4px">⚠️ '+e.message+'</div>';
+  }
+}
+
+function renderBCBInbox(raw){
+  const el = document.getElementById('bcb-inbox-list');
+  if(!el) return;
+  let all = [];
+  Object.keys(raw).forEach(period=>{
+    const pd = raw[period];
+    if(!pd||typeof pd!=='object') return;
+    Object.keys(pd).forEach(key=>{
+      const e = pd[key];
+      if(e&&e.name) all.push({...e, _period:period, _key:key});
+    });
+  });
+  all.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+  if(!all.length){ el.innerHTML='<div style="font-size:.75em;color:#555;padding:4px">No rangers submitted yet.</div>'; return; }
+  let html='';
+  all.forEach(e=>{
+    const key = e._period+'_'+e._key;
+    const dep = _bcbDeployed.has(key);
+    const ts  = e.timestamp ? new Date(e.timestamp).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+    const stats=[e.str&&'S:'+e.str, e.mrk&&'M:'+e.mrk, e.agi&&'A:'+e.agi].filter(Boolean).join(' ');
+    const pLabel = e._period||'?';
+    html += `<div style="display:flex;align-items:center;gap:6px;padding:5px 4px;border-bottom:1px solid #1a2a1a;opacity:${dep?.45:1}">
+      <span style="font-size:1.2em">🪖</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:.8em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.name||'Unknown'}</div>
+        <div style="font-size:.68em;color:#888">${pLabel.toUpperCase()} HOUR · ${ts}</div>
+        ${stats?`<div style="font-size:.65em;color:#6aab3a">${stats}${e.warResult?' · WAR:'+e.warResult.toUpperCase():''}</div>`:''}
+      </div>
+      <button class="retro-btn sm" style="flex-shrink:0;${dep?'opacity:.3':''}"
+        ${dep?'disabled':''} onclick="deployBCBRanger('${key}','${e._period}','${e.name}')">
+        ${dep?'✓ DONE':'DEPLOY'}
+      </button>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function deployBCBRanger(key, period, name){
+  // Match period string to CLS key
+  const mp = ['1st','2nd','5th','6th'].find(p=>period.startsWith(p)) ||
+             (period.startsWith('1')?'1st':period.startsWith('2')?'2nd':period.startsWith('5')?'5th':'6th');
+  if(!S.inv[mp]) S.inv[mp]={};
+  S.inv[mp]['AIRBORNE_RANGER'] = (S.inv[mp]['AIRBORNE_RANGER']||0)+1;
+  saveState();
+  renderTeacherUI();
+  _bcbDeployed.add(key);
+  saveBCBDeployed();
+  loadBCBInbox();
+  addLog('🪂 BCB Ranger "'+name+'" deployed to '+CLS[mp].name+' inventory!');
+  publishToFirebase();
+}
+
+function updateBCBBadge(raw){
+  let pending=0;
+  Object.keys(raw).forEach(period=>{
+    const pd=raw[period];
+    if(!pd||typeof pd!=='object')return;
+    Object.keys(pd).forEach(key=>{
+      if(!_bcbDeployed.has(period+'_'+key)) pending++;
+    });
+  });
+  const h2=document.querySelector('#bcb-panel h2');
+  if(h2){
+    const badge = pending>0 ? ` <span style="background:#cc2200;color:#fff;font-size:.7em;padding:1px 6px;border-radius:10px">${pending}</span>` : '';
+    h2.innerHTML = '🪂 BCB RANGER INBOX'+badge+' <button onclick="loadBCBInbox()" style="background:none;border:none;color:#ffd700;cursor:pointer;font-size:.9em;margin-left:6px" title="Refresh">↻</button>';
+  }
+}
+
+// ── STUDENT FIREBASE POLL (every 30s) ──
+let _studentPollIv = null;
+let _lastPublished = 0;
+
+function startStudentPoll(){
+  if(_studentPollIv) clearInterval(_studentPollIv);
+  pollFirebaseState();
+  _studentPollIv = setInterval(pollFirebaseState, 30000);
+}
+
+function stopStudentPoll(){
+  if(_studentPollIv){ clearInterval(_studentPollIv); _studentPollIv=null; }
+}
+
+async function pollFirebaseState(){
+  try {
+    const r = await fetch(FB_URL+'/twc_state.json?t='+Date.now());
+    if(!r.ok) return;
+    const d = await r.json();
+    if(!d||!d.published) return;
+    if(d.published===_lastPublished) return; // no change
+    _lastPublished = d.published;
+    // Merge into S (teacher is authoritative)
+    if(d.inv)  S.inv  = d.inv;
+    if(d.gold) S.gold = d.gold;
+    if(d.govt) S.govt = d.govt;
+    if(d.own)  S.own  = d.own;
+    if(d.blok) S.blok = d.blok;
+    if(d.skip) S.skip = d.skip;
+    if(d.nuked)S.nuked= d.nuked;
+    if(d.icbm) S.icbm = d.icbm;
+    if(d.log)  S.log  = d.log;
+    renderStudentView(_currentStudentCls);
+    refreshMiniMap();
+    showStudentBanner('📡 Teacher updated the game!');
+  } catch{}
+}
+
+let _bannerTimeout=null;
+function showStudentBanner(msg){
+  let banner=document.getElementById('student-fb-banner');
+  if(!banner){
+    banner=document.createElement('div');
+    banner.id='student-fb-banner';
+    banner.style.cssText='position:fixed;top:0;left:0;right:0;z-index:2000;background:linear-gradient(90deg,#001a00,#0d2a0d);border-bottom:2px solid #00ff88;padding:8px 16px;font-family:var(--font);font-size:.82em;color:#00ff88;letter-spacing:1px;display:flex;align-items:center;gap:10px;animation:slideDown .4s ease';
+    banner.innerHTML='<span>📡</span><span id="student-fb-banner-msg"></span><button onclick="this.parentElement.style.display='none'" style="margin-left:auto;background:none;border:none;color:#00ff88;cursor:pointer;font-size:1.1em">✕</button>';
+    document.body.appendChild(banner);
+    // Add keyframe if not present
+    if(!document.getElementById('fb-banner-style')){
+      const st=document.createElement('style');
+      st.id='fb-banner-style';
+      st.textContent='@keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}';
+      document.head.appendChild(st);
+    }
+  }
+  banner.style.display='flex';
+  document.getElementById('student-fb-banner-msg').textContent=msg;
+  if(_bannerTimeout) clearTimeout(_bannerTimeout);
+  _bannerTimeout=setTimeout(()=>{banner.style.display='none';},7000);
+}
 </script>
+</body>
+</html>
